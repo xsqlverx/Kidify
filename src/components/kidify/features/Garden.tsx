@@ -126,6 +126,22 @@ export function Garden() {
         </Pill>
       </div>
 
+      {/* garden stats bar */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="rounded-2xl bg-white/60 p-2.5 text-center backdrop-blur">
+          <div className="font-display text-lg font-bold text-emerald-500">{plants.length}</div>
+          <div className="text-[9px] font-semibold uppercase text-emerald-400/70">🌿 plants</div>
+        </div>
+        <div className="rounded-2xl bg-white/60 p-2.5 text-center backdrop-blur">
+          <div className="font-display text-lg font-bold text-amber-500">{plants.filter((p) => p.growth >= 4).length}</div>
+          <div className="text-[9px] font-semibold uppercase text-amber-400/70">✨ bloomed</div>
+        </div>
+        <div className="rounded-2xl bg-white/60 p-2.5 text-center backdrop-blur">
+          <div className="font-display text-lg font-bold text-sky-500">{plants.filter((p) => p.thirsty).length}</div>
+          <div className="text-[9px] font-semibold uppercase text-sky-400/70">💧 thirsty</div>
+        </div>
+      </div>
+
       {/* garden plot */}
       <PinkCard className="overflow-hidden">
         <div
@@ -136,8 +152,22 @@ export function Garden() {
           }}
         >
           {/* sky accents */}
-          <div className="pointer-events-none absolute right-3 top-3 text-2xl">☁️</div>
-          <div className="pointer-events-none absolute left-3 top-3 text-lg">☀️</div>
+          <motion.div
+            className="pointer-events-none absolute right-3 top-3 text-2xl"
+            animate={{ y: [0, -4, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          >☁️</motion.div>
+          <motion.div
+            className="pointer-events-none absolute left-3 top-3 text-lg"
+            animate={{ rotate: [0, 15, -15, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          >☀️</motion.div>
+          {/* butterfly */}
+          <motion.div
+            className="pointer-events-none absolute left-8 top-8 text-lg"
+            animate={{ x: [0, 60, 120, 60, 0], y: [0, -10, 5, -8, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          >🦋</motion.div>
 
           {plants.length === 0 ? (
             <div className="flex h-48 flex-col items-center justify-center text-center">

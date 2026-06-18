@@ -18,6 +18,8 @@ import { MoodDiary } from "./MoodDiary";
 import { LoveLetterArchive } from "./LoveLetterArchive";
 import { SelfCareChecklist } from "./SelfCareChecklist";
 import { OurStory } from "./OurStory";
+import { MoodInsights } from "./MoodInsights";
+import { SurpriseBox } from "./SurpriseBox";
 import { useKidify } from "@/lib/store";
 import { useDailyMessage } from "@/lib/data-access";
 import type { DailyMessage } from "@/lib/mock-data";
@@ -165,6 +167,15 @@ export function HomeFeature() {
         transition={{ delay: 0.08 }}
       >
         <DaysCounter />
+      </motion.div>
+
+      {/* daily surprise box */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.10 }}
+      >
+        <SurpriseBox />
       </motion.div>
 
       {/* today's love note */}
@@ -401,6 +412,15 @@ export function HomeFeature() {
         transition={{ delay: 0.30 }}
       >
         <MoodDiary />
+      </motion.div>
+
+      {/* mood insights — only shows after 2+ moods logged */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.31 }}
+      >
+        <MoodInsights />
       </motion.div>
 
       {/* daily self-care checklist */}

@@ -343,3 +343,53 @@ Stage Summary:
 - New files: `SelfCareChecklist.tsx`, `OurStory.tsx`, `BearSpeech.tsx`.
 - Modified files: `store.ts` (SelfCareTask + StoryMilestone types, state, actions, resetAll), `manifest.json` (fixed icon 404), `Home.tsx` (integrated SelfCareChecklist + OurStory), `AppShell.tsx` (added BearSpeech), `Gallery.tsx` (featured image layout).
 - Next round priorities: Service worker for offline PWA, backend wiring (MongoDB+Cloudinary+Vercel), ambient sound toggle, mood diary insights/stats, wish-granting animations, admin-editable story milestones.
+
+---
+
+Task ID: round-8
+Agent: main (webDevReview cron)
+Task: QA the app, add new features (Daily Surprise Box, Mood Insights, Garden Stats), polish garden styling with animated weather, and verify.
+
+Work Log:
+- Re-read worklog.md (rounds 1-7) to understand current state: all previous features done (onboarding, bear, 5 tabs, wardrobe, hug, days counter, confetti, reasons, stickers, memory jar, breathing bubble, affirmation, star wish, mood diary, love letter archive, PWA manifest, pink glass toasts, self-care checklist, our story timeline, bear speech reactions, gallery featured image).
+- QA'd the full app fresh with agent-browser (iPhone 14): onboarding → unlock → all 5 tabs → modals. No runtime errors, no console warnings. App is stable.
+- Extended the Zustand store (`src/lib/store.ts`) with new state:
+  - `surpriseDate`, `surpriseOpened`, `surpriseIndex` for the Daily Surprise Box.
+  - Actions: `openSurprise` (picks a surprise based on day-of-year for consistency, marks as opened), `resetSurpriseIfNewDay`.
+  - Wired all new fields into `resetAll`.
+- Built `src/components/kidify/features/SurpriseBox.tsx`:
+  - A daily surprise card with a wrapped gift box that she can "unwrap" once per day.
+  - 30 unique handwritten surprises: imaginary chocolates, drawn flowers, permission slips, song recommendations, moon watchings, tiny secrets, safety pins, and more — all deeply personal and emotionally specific.
+  - Unopened state: animated bouncing 🎁 with "unwrap" button.
+  - Opened state: shows the surprise emoji + title, with "read it again" option.
+  - Reveal modal: full-screen with 12 orbiting sparkle bursts, spring-in card with emoji, title, and handwritten body text.
+  - Surprise index is deterministic by day-of-year, so she gets the same surprise all day (no refreshing for a better one).
+  - Auto-resets on new day.
+- Built `src/components/kidify/features/MoodInsights.tsx`:
+  - A gentle mood analytics card that only appears after she's logged 2+ moods.
+  - Compact button card showing streak count + valence summary ("you've been glowing lately").
+  - Insights modal with 3 stat cards: day streak, total logs, average valence (out of 5).
+  - Valence summary card with contextual message based on average.
+  - Bar chart of last 7 moods with emoji + height based on valence.
+  - Mood distribution bars showing count per mood emoji.
+  - Gentle disclaimer: "this is just a gentle mirror. not a diagnosis. just a little reflection."
+  - Mood valence mapping: ☀️ sunny=5, 🧸 cozy=4, 🔥 fired up=4, 🌸 soft=3, 🤍 quiet=3, 🌊 up&down=2, ⚡ wired=2, 🌧️ grey=1.
+- Enhanced Garden (`Garden.tsx`):
+  - Added 3-column stats bar at top: 🌿 plants count, ✨ bloomed count, 💧 thirsty count.
+  - Animated weather elements: floating ☁️ (y bob), rotating ☀️, flying 🦋 butterfly (x/y path animation across the garden).
+  - Stats bar gives at-a-glance garden health overview.
+- Integrated SurpriseBox into Home (prominent position after DaysCounter, before love note).
+- Integrated MoodInsights into Home (after MoodDiary, only visible after 2+ moods logged).
+
+Stage Summary:
+- `bun run lint` — clean (0 errors, 0 warnings).
+- Dev server compiles and serves 200s; no runtime errors, no console warnings.
+- Agent-browser verification (all PASSED):
+  - Onboarding: full flow name → letter → unlock (code 2707) → app. ✅
+  - Surprise Box: "unwrap" button visible, clicking opens reveal modal with "a tiny home" surprise + 12 sparkle bursts, "opened today ✓" status shows after. ✅
+  - Mood Insights: after logging 2 moods (sunny + soft), the insights card appears with "2-day streak · you've been glowing lately 🌸", opening modal shows 3 stat cards (2 streak, 2 total, 4 avg), valence summary, bar chart, and mood distribution. ✅
+  - Garden: stats bar shows plants/bloomed/thirsty counts, animated weather elements (☁️ ☀️ 🦋) render in the garden sky. ✅
+  - All 5 tabs cycle cleanly with no errors/warnings. ✅
+- New files: `SurpriseBox.tsx`, `MoodInsights.tsx`.
+- Modified files: `store.ts` (surprise state + actions, resetAll), `Home.tsx` (integrated SurpriseBox + MoodInsights), `Garden.tsx` (stats bar + animated weather).
+- Next round priorities: Service worker for offline PWA, backend wiring (MongoDB+Cloudinary+Vercel), ambient sound toggle, wish-granting animations, admin-editable story milestones, more breathing patterns.

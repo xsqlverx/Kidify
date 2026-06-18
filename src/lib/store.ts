@@ -137,6 +137,11 @@ type KidifyState = {
   // Our Story — relationship milestones
   storyMilestones: StoryMilestone[];
 
+  // Daily surprise box — one little surprise per day
+  surpriseDate: string; // YYYY-MM-DD the surprise belongs to
+  surpriseOpened: boolean;
+  surpriseIndex: number; // which surprise she got today
+
   // Breathing — last time she did a breathing exercise
   lastBreathAt: number | null;
   breathSessions: number;
@@ -204,6 +209,9 @@ type KidifyState = {
 
   addMilestone: (emoji: string, title: string, date: string, note?: string) => void;
   removeMilestone: (id: string) => void;
+
+  openSurprise: () => void;
+  resetSurpriseIfNewDay: () => void;
 
   logBreathSession: () => void;
 
@@ -285,6 +293,9 @@ export const useKidify = create<KidifyState>()(
           ts: Date.now() - 86400000 * 10,
         },
       ],
+      surpriseDate: todayStr(),
+      surpriseOpened: false,
+      surpriseIndex: 0,
       lastBreathAt: null,
       breathSessions: 0,
       revealedReasons: [],
@@ -538,6 +549,30 @@ export const useKidify = create<KidifyState>()(
           storyMilestones: s.storyMilestones.filter((m) => m.id !== id),
         })),
 
+      openSurprise: () => {
+        const today = todayStr();
+        set((s) => {
+          // if already opened today, do nothing
+          if (s.surpriseDate === today && s.surpriseOpened) return s;
+          // pick a surprise index based on day-of-year for consistency
+          const dayOfYear = Math.floor(
+            (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000,
+          );
+          return {
+            surpriseDate: today,
+            surpriseOpened: true,
+            surpriseIndex: dayOfYear % 30, // 30 unique surprises
+          };
+        });
+      },
+
+      resetSurpriseIfNewDay: () =>
+        set((s) =>
+          s.surpriseDate !== todayStr()
+            ? { surpriseDate: todayStr(), surpriseOpened: false, surpriseIndex: 0 }
+            : s,
+        ),
+
       logBreathSession: () =>
         set((s) => ({ lastBreathAt: Date.now(), breathSessions: s.breathSessions + 1 })),
 
@@ -601,6 +636,9 @@ export const useKidify = create<KidifyState>()(
           careDate: todayStr(),
           careDoneToday: [],
           storyMilestones: [],
+          surpriseDate: todayStr(),
+          surpriseOpened: false,
+          surpriseIndex: 0,
           lastBreathAt: null,
           breathSessions: 0,
           revealedReasons: [],
