@@ -90,6 +90,7 @@ function BreathingExercise({
   const [phaseIdx, setPhaseIdx] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(PHASES[0].duration);
   const [cyclesDone, setCycleDone] = useState(0);
+  const [completed, setCompleted] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const phase = PHASES[phaseIdx];
@@ -114,20 +115,27 @@ function BreathingExercise({
         const next = (p + 1) % PHASES.length;
         if (next === 0) {
           // completed a full cycle
-          setCycleDone((c) => {
-            const newC = c + 1;
-            if (newC >= 3) {
-              setRunning(false);
-              onComplete();
-            }
-            return newC;
-          });
+          setCycleDone((c) => c + 1);
         }
         return next;
       });
       return 0;
     });
-  }, [onComplete]);
+  }, []);
+
+  // reset seconds when phase changes
+  useEffect(() => {
+    setSecondsLeft(PHASES[phaseIdx].duration);
+  }, [phaseIdx]);
+
+  // detect completion (3 cycles) — triggered outside of state updaters
+  useEffect(() => {
+    if (cyclesDone >= 3 && !completed) {
+      setCompleted(true);
+      setRunning(false);
+      onComplete();
+    }
+  }, [cyclesDone, completed, onComplete]);
 
   useEffect(() => {
     if (!running) {
@@ -139,11 +147,6 @@ function BreathingExercise({
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [running, tick]);
-
-  // reset seconds when phase changes
-  useEffect(() => {
-    setSecondsLeft(PHASES[phaseIdx].duration);
-  }, [phaseIdx]);
 
   const handleStart = () => {
     setRunning(true);

@@ -393,3 +393,37 @@ Stage Summary:
 - New files: `SurpriseBox.tsx`, `MoodInsights.tsx`.
 - Modified files: `store.ts` (surprise state + actions, resetAll), `Home.tsx` (integrated SurpriseBox + MoodInsights), `Garden.tsx` (stats bar + animated weather).
 - Next round priorities: Service worker for offline PWA, backend wiring (MongoDB+Cloudinary+Vercel), ambient sound toggle, wish-granting animations, admin-editable story milestones, more breathing patterns.
+
+---
+
+Task ID: round-8-bugfix
+Agent: main (user-reported console error)
+Task: Fix "Cannot update a component while rendering a different component" error in BreathingBubble.
+
+Work Log:
+- User reported a console error: "Cannot update a component (`BreathingBubble`) while rendering a different component (`BreathingExercise`). To locate the bad setState() call inside `BreathingExercise`..."
+- Root cause: In `BreathingBubble.tsx`, the `tick` callback called `onComplete()` (which calls `logBreathSession()` → Zustand `set()`) inside nested `setState` updater functions:
+  ```
+  setSecondsLeft((s) => {
+    ...
+    setPhaseIdx((p) => {
+      ...
+      setCycleDone((c) => {
+        if (newC >= 3) {
+          onComplete(); // ← setState during render!
+        }
+        return newC;
+      });
+    });
+  });
+  ```
+  React treats code inside state updater functions as happening during render, so calling `onComplete()` (which triggers a Zustand store update on a different component) caused the error.
+- Fix: Refactored the `tick` callback to only update state (no side effects), and added a `completed` boolean state + a `useEffect` that detects when `cyclesDone >= 3` and calls `onComplete()` outside of any state updater. Also added `setRunning(false)` to the same effect.
+- The `tick` callback is now a pure state updater with no nested side-effect calls. The `useCallback` dependency array was simplified to `[]` since it no longer depends on `onComplete`.
+- Verified with agent-browser: ran the full 3-cycle breathing exercise (68 seconds), confirmed zero console errors and zero page errors. `breathSessions` correctly incremented to 1 in localStorage. Modal closed automatically after completion.
+
+Stage Summary:
+- `bun run lint` — clean (0 errors, 0 warnings).
+- Agent-browser verification: full breathing exercise completed with NO console errors (previously threw "Cannot update a component while rendering a different component"). ✅
+- Modified file: `BreathingBubble.tsx` (refactored tick to pure state update + useEffect for completion detection).
+- This was a regression from Round 4 (BreathingBubble was originally built with the nested-setState pattern). The error only surfaces when a breathing exercise is actually completed to 3 cycles, which is why it wasn't caught in earlier QA rounds that didn't run the full 63-second exercise.
