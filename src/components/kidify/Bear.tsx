@@ -279,6 +279,43 @@ export function Bear({ size = 120, className, interactive = true, mood: moodOver
               <path d="M140 156 L150 178 L132 172 Z" fill="#8B5CF6" />
             </g>
           )}
+          {accessory === "glasses" && (
+            <g>
+              <circle cx="88" cy="96" r="13" fill="none" stroke="#3B2A22" strokeWidth="2.5" />
+              <circle cx="112" cy="96" r="13" fill="none" stroke="#3B2A22" strokeWidth="2.5" />
+              <line x1="101" y1="96" x2="99" y2="96" stroke="#3B2A22" strokeWidth="2.5" strokeLinecap="round" />
+              {/* subtle lens shine */}
+              <path d="M82 90 Q86 88 90 91" stroke="#fff" strokeWidth="1.5" fill="none" opacity="0.6" strokeLinecap="round" />
+              <path d="M106 90 Q110 88 114 91" stroke="#fff" strokeWidth="1.5" fill="none" opacity="0.6" strokeLinecap="round" />
+            </g>
+          )}
+          {accessory === "halo" && (
+            <g>
+              <motion.ellipse
+                cx="100"
+                cy="38"
+                rx="38"
+                ry="8"
+                fill="none"
+                stroke="#FBBF24"
+                strokeWidth="3"
+                opacity="0.85"
+                animate={{ opacity: [0.6, 1, 0.6], rotate: [0, 4, 0] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                style={{ transformOrigin: "100px 38px" }}
+              />
+              <motion.ellipse
+                cx="100"
+                cy="38"
+                rx="38"
+                ry="8"
+                fill="none"
+                stroke="#FEF3C7"
+                strokeWidth="1"
+                opacity="0.6"
+              />
+            </g>
+          )}
 
           {/* mood sparkle */}
           {mood === "excited" && (

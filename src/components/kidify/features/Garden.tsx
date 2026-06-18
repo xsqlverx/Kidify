@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PinkCard, PinkButton, Pill, SectionTitle } from "../ui/decor";
 import { Portal } from "../ui/portal";
 import { useKidify, PLANT_TYPES, type Plant } from "@/lib/store";
@@ -67,6 +67,15 @@ export function Garden() {
   const addPlant = useKidify((s) => s.addPlant);
   const waterPlant = useKidify((s) => s.waterPlant);
   const removePlant = useKidify((s) => s.removePlant);
+  const refreshThirsty = useKidify((s) => s.refreshThirsty);
+
+  // On mount and every 60s, mark plants thirsty again if 8h have passed
+  // since they were last watered.
+  useEffect(() => {
+    refreshThirsty();
+    const t = setInterval(refreshThirsty, 60000);
+    return () => clearInterval(t);
+  }, [refreshThirsty]);
 
   const [showShop, setShowShop] = useState(false);
   const [newName, setNewName] = useState("");

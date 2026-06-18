@@ -67,6 +67,43 @@ Phase 1 complete. The Kidify frontend prototype is built and running on the Next
 2. **Failsafe webhook** — implement the `/api/unlock/verify` route that fires a Discord webhook on 5 wrong attempts (currently mocked client-side with a 5-min lock).
 3. **Real unlock code** — move `DEMO_UNLOCK_CODE` from `Onboarding.tsx` to `process.env.UNLOCK_CODE` verified server-side.
 4. **Period tracker refinements** — let her edit cycle/period length; add gentle notifications.
-5. **Garden persistence timing** — plants should re-become thirsty after ~12h (currently stay watered within a session).
+5. ~~Garden persistence timing~~ ✅ DONE (plants now re-become thirsty after 8h via `refreshThirsty`).
 6. **PWA / installability** — add manifest + service worker so it feels like a real app on her phone.
-7. **More bear accessories & reactions** — the bear could react differently per tab (e.g. hold a watering can in the garden).
+7. ~~More bear accessories~~ ✅ DONE (added glasses + halo; wardrobe UI built).
+8. **Bear mood per-tab** — the bear could react differently per tab (e.g. hold a watering can in the garden, wear glasses in the gallery).
+9. **Premium accessory coin deduction** — currently premium accessories (glasses/halo) check coin balance but don't deduct; add deduction when the backend is live.
+
+---
+
+Task ID: round-2
+Agent: main (webDevReview cron)
+Task: QA the app, fix bugs, add new features (wardrobe, hug button, days counter), improve styling, and verify.
+
+Work Log:
+- Re-read worklog.md to understand Phase 1 state.
+- QA'd the full app with agent-browser (iPhone 14): onboarding → unlock → all 5 tabs → modals. No runtime errors. One framer-motion scroll warning on ThankYou.
+- Fixed the scroll warning by adding `className="relative"` to the motion.div wrapper in AppShell (the AnimatePresence container that wraps each tab).
+- Extended the Zustand store with new state: `wardrobeUnlocked`, `hugsSent`, `lastHugAt`, `anniversaryDate`, plus 2 new bear accessories (`glasses`, `halo`). Added actions: `unlockWardrobe`, `sendHug`, `setAnniversary`, `refreshThirsty`.
+- Added 2 new accessories to the Bear SVG: round glasses (with lens shine) and a glowing animated halo.
+- Built `Wardrobe.tsx` — a portaled bottom-sheet dress-up screen accessible from the Home greeting bear. Shows a live bear preview, 6 accessories (4 free + 2 premium costing garden coins), active-state checkmarks, and coin/lock indicators. Premium accessories are gated by garden coins.
+- Built `HugButton.tsx` — a big pulsing heart button with a 14-particle heart burst animation, glow rings, 3-second cooldown ("one at a time, love"), hug counter, and 7 random affectionate toast messages. Translates "physical touch" love language digitally.
+- Built `DaysCounter.tsx` — an anniversary widget that counts days since a user-set date, with milestone tracking (day one / 30 / 100 / 365 / 500 / 1000), a contextual handwritten compliment, and an edit-date modal. Empty state prompts her to set the date.
+- Built `Confetti.tsx` — a one-shot 24-piece emoji confetti burst (keyed remount pattern) that fires when she completes her water goal.
+- Restructured Home feature to integrate all new pieces: quick-stats row (pats / hugs / water), days counter, love note, hug button, water reminder, bear-pats footer. Added a wardrobe shirt-icon badge on the greeting bear.
+- Wired `refreshThirsty` into the Garden component (runs on mount + every 60s; marks plants thirsty if 8h elapsed since last watering).
+- Fixed 2 lint errors (setState-in-effect) by restructuring HugButton (cooldown via click handler + ref timer) and Confetti (useState initializer + keyed remount).
+- Initially added a pat-gate to the wardrobe (10 pats to unlock) but removed it during QA because opening the wardrobe via the bear already counts as a pat, making the gate clunky. Wardrobe is now always accessible; only premium accessories are coin-gated.
+
+Stage Summary:
+- `bun run lint` — clean (0 errors, 0 warnings).
+- Dev server compiles and serves 200s.
+- Agent-browser verification (all PASSED):
+  - Wardrobe opens from Home greeting bear, shows all 6 accessories, picking crown updates the bear preview + persistent bear. ✅
+  - Hug button fires, heartsSent increments to 1 in localStorage, cooldown activates. ✅
+  - Days counter empty state shows "set date" prompt, modal opens. ✅ (date input save couldn't be tested via headless browser due to controlled-input quirks, but the UI is correct)
+  - Confetti fires 24 pieces on water-goal completion (verified DOM: "confetti FIRING, pieces: 24"). ✅
+  - Garden: Rosie correctly marked thirsty after 8h+ (refreshThirsty working). ✅
+  - No console errors or page errors across all tabs. ✅
+- New files: `Wardrobe.tsx`, `HugButton.tsx`, `DaysCounter.tsx`, `confetti.tsx`.
+- Modified files: `store.ts` (new state + actions + partialize), `Bear.tsx` (glasses + halo accessories), `Home.tsx` (integrated all new features), `Garden.tsx` (thirst-over-time), `AppShell.tsx` (relative wrapper).
+- Next round priorities: PWA manifest, bear mood per-tab, premium-coin deduction, backend wiring.

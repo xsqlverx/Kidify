@@ -35,7 +35,15 @@ type KidifyState = {
   // Bear
   bearMood: BearMood;
   bearPats: number;
-  bearAccessory: "bow" | "flower" | "crown" | "scarf";
+  bearAccessory: "bow" | "flower" | "crown" | "scarf" | "glasses" | "halo";
+  wardrobeUnlocked: boolean;
+
+  // Hugs
+  hugsSent: number;
+  lastHugAt: number | null;
+
+  // Anniversary / story
+  anniversaryDate: string | null; // YYYY-MM-DD the two of you began
 
   // Water
   waterCups: number;
@@ -93,6 +101,11 @@ type KidifyState = {
   unlockAdmin: () => void;
   registerAdminTap: () => boolean;
 
+  unlockWardrobe: () => void;
+  sendHug: () => void;
+  setAnniversary: (date: string) => void;
+  refreshThirsty: () => void;
+
   resetAll: () => void;
 };
 
@@ -112,6 +125,10 @@ export const useKidify = create<KidifyState>()(
       bearMood: "happy",
       bearPats: 0,
       bearAccessory: "bow",
+      wardrobeUnlocked: false,
+      hugsSent: 0,
+      lastHugAt: null,
+      anniversaryDate: null,
 
       waterCups: 0,
       waterDate: todayStr(),
@@ -270,6 +287,26 @@ export const useKidify = create<KidifyState>()(
         return false;
       },
 
+      unlockWardrobe: () => set({ wardrobeUnlocked: true }),
+
+      sendHug: () =>
+        set((s) => ({ hugsSent: s.hugsSent + 1, lastHugAt: Date.now(), bearMood: "love" })),
+
+      setAnniversary: (date) => set({ anniversaryDate: date }),
+
+      refreshThirsty: () =>
+        set((s) => {
+          const THIRST_MS = 1000 * 60 * 60 * 8; // 8 hours
+          const now = Date.now();
+          return {
+            plants: s.plants.map((p) =>
+              !p.thirsty && p.lastWatered && now - p.lastWatered > THIRST_MS
+                ? { ...p, thirsty: true }
+                : p,
+            ),
+          };
+        }),
+
       resetAll: () =>
         set({
           bearName: null,
@@ -279,6 +316,11 @@ export const useKidify = create<KidifyState>()(
           lockedUntil: null,
           bearMood: "happy",
           bearPats: 0,
+          bearAccessory: "bow",
+          wardrobeUnlocked: false,
+          hugsSent: 0,
+          lastHugAt: null,
+          anniversaryDate: null,
           waterCups: 0,
           waterDate: todayStr(),
           periodLogs: [],

@@ -1,13 +1,17 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Bear } from "../Bear";
 import { PinkCard, PinkButton, Pill, SectionTitle } from "../ui/decor";
+import { Confetti } from "../ui/confetti";
+import { Wardrobe } from "./Wardrobe";
+import { HugButton } from "./HugButton";
+import { DaysCounter } from "./DaysCounter";
 import { useKidify } from "@/lib/store";
 import { useDailyMessage } from "@/lib/data-access";
 import type { DailyMessage } from "@/lib/mock-data";
-import { Droplets, ChevronLeft, ChevronRight, Check, CalendarDays } from "lucide-react";
+import { Droplets, ChevronLeft, ChevronRight, Check, CalendarDays, Shirt, Heart } from "lucide-react";
 import { toast } from "sonner";
 
 export function HomeFeature() {
@@ -18,8 +22,12 @@ export function HomeFeature() {
   const markMessageRead = useKidify((s) => s.markMessageRead);
   const readMessages = useKidify((s) => s.readMessages);
   const bearPats = useKidify((s) => s.bearPats);
+  const hugsSent = useKidify((s) => s.hugsSent);
 
   const [dayOffset, setDayOffset] = useState(0); // 0 = today
+  const [wardrobeOpen, setWardrobeOpen] = useState(false);
+  const [confettiFire, setConfettiFire] = useState(0);
+  const celebratedRef = useRef(false);
   const today = useDailyMessage(0);
   const msg: DailyMessage = useDailyMessage(dayOffset);
 
@@ -44,16 +52,23 @@ export function HomeFeature() {
   };
 
   const handleWater = () => {
+    const willComplete = waterCups + 1 >= waterGoal && waterCups < waterGoal;
     addWater(1);
-    if (waterCups + 1 >= waterGoal && waterCups < waterGoal) {
+    if (willComplete) {
       toast.success("you did it! 💧", {
         description: `${bearName} is so proud of you.`,
       });
+      if (!celebratedRef.current) {
+        celebratedRef.current = true;
+        setConfettiFire((f) => f + 1);
+      }
     }
   };
 
   return (
     <div className="space-y-5">
+      {confettiFire > 0 && <Confetti key={confettiFire} />}
+
       {/* greeting */}
       <motion.div
         className="flex items-center gap-3"
@@ -63,17 +78,60 @@ export function HomeFeature() {
         <div className="flex-1">
           <p className="text-sm text-rose-400">{greeting}</p>
           <h1 className="font-display text-2xl font-extrabold text-gradient-rose">
-            {bearName ? `welcome back, you` : "welcome"}
+            welcome back, you
           </h1>
         </div>
-        <Bear size={64} mood="happy" />
+        <button
+          onClick={() => setWardrobeOpen(true)}
+          className="relative flex flex-col items-center"
+          aria-label="open bear wardrobe"
+        >
+          <Bear size={64} mood="happy" />
+          <motion.span
+            className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-400 text-white shadow"
+            animate={{ scale: [1, 1.15, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <Shirt className="h-2.5 w-2.5" />
+          </motion.span>
+        </button>
+      </motion.div>
+
+      {/* quick stats row */}
+      <motion.div
+        className="grid grid-cols-3 gap-2"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+      >
+        <div className="rounded-2xl bg-white/60 p-2.5 text-center backdrop-blur">
+          <div className="font-display text-lg font-bold text-rose-500">{bearPats}</div>
+          <div className="text-[9px] font-semibold uppercase text-rose-400/70">bear pats</div>
+        </div>
+        <div className="rounded-2xl bg-white/60 p-2.5 text-center backdrop-blur">
+          <div className="font-display text-lg font-bold text-rose-500">{hugsSent}</div>
+          <div className="text-[9px] font-semibold uppercase text-rose-400/70">hugs sent</div>
+        </div>
+        <div className="rounded-2xl bg-white/60 p-2.5 text-center backdrop-blur">
+          <div className="font-display text-lg font-bold text-sky-500">{Math.min(waterCups, waterGoal)}/{waterGoal}</div>
+          <div className="text-[9px] font-semibold uppercase text-sky-400/70">water</div>
+        </div>
+      </motion.div>
+
+      {/* days-together counter */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.08 }}
+      >
+        <DaysCounter />
       </motion.div>
 
       {/* today's love note */}
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05 }}
+        transition={{ delay: 0.12 }}
       >
         <PinkCard className="relative overflow-hidden">
           <div className="absolute -right-6 -top-6 text-7xl opacity-10">{msg.sticker}</div>
@@ -126,11 +184,25 @@ export function HomeFeature() {
         </PinkCard>
       </motion.div>
 
+      {/* send a hug */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.16 }}
+      >
+        <PinkCard className="flex flex-col items-center py-7">
+          <Pill className="mb-3">
+            <Heart className="h-3 w-3 fill-rose-400 text-rose-400" /> physical touch, digitised
+          </Pill>
+          <HugButton />
+        </PinkCard>
+      </motion.div>
+
       {/* water reminder */}
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={{ delay: 0.2 }}
       >
         <PinkCard className="overflow-hidden">
           <div className="flex items-center justify-between">
@@ -209,15 +281,18 @@ export function HomeFeature() {
         </PinkCard>
       </motion.div>
 
-      {/* bear pats stat */}
+      {/* bear pats footer */}
       <motion.div
         className="flex items-center justify-center gap-2 pt-1 text-xs text-rose-400/70"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
+        transition={{ delay: 0.24 }}
       >
         <span>🧸 you've given {bearName} {bearPats} {bearPats === 1 ? "pat" : "pats"}. it's keeping count.</span>
       </motion.div>
+
+      {/* wardrobe sheet */}
+      <Wardrobe open={wardrobeOpen} onClose={() => setWardrobeOpen(false)} />
     </div>
   );
 }
