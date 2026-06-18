@@ -1,36 +1,29 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { useState } from "react";
 import { PinkCard, SectionTitle } from "../ui/decor";
 import { useThankYou } from "@/lib/data-access";
 import { useKidify } from "@/lib/store";
 import { Heart } from "lucide-react";
 
 export function ThankYou() {
-  const containerRef = useRef<HTMLDivElement>(null);
   const bearName = useKidify((s) => s.bearName);
   const [tappedHearts, setTappedHearts] = useState<number[]>([]);
   const thankYou = useThankYou();
-
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
-  const heartScale = useTransform(scrollYProgress, [0, 1], [1, 1.3]);
-  const heartOpacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.3, 0.6, 0.9]);
 
   const handleHeartTap = (i: number) => {
     setTappedHearts((h) => [...h, i]);
   };
 
   return (
-    <div ref={containerRef} className="relative space-y-6">
+    <div className="relative space-y-6">
       {/* hero heart */}
       <div className="relative flex flex-col items-center pt-4 text-center">
         <motion.div
-          style={{ scale: heartScale, opacity: heartOpacity }}
           className="relative"
+          animate={{ scale: [1, 1.08, 1], opacity: [0.85, 1, 0.85] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         >
           <motion.div
             animate={{ y: [0, -10, 0] }}

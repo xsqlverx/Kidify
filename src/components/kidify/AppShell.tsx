@@ -67,7 +67,7 @@ export function AppShell() {
         </AnimatePresence>
       </main>
 
-      {/* floating bear — follows her everywhere */}
+      {/* floating bear — follows her everywhere, with a little tab-themed prop */}
       <motion.button
         className="fixed bottom-24 right-4 z-40"
         initial={{ scale: 0, opacity: 0 }}
@@ -78,6 +78,20 @@ export function AppShell() {
           // taps handled inside Bear; this is just so the button is focusable
         }}
       >
+        {/* contextual prop bubble */}
+        <motion.div
+          key={tab}
+          className="absolute -left-3 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-sm shadow-soft"
+          initial={{ scale: 0, x: 10, opacity: 0 }}
+          animate={{ scale: 1, x: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 18 }}
+        >
+          {tab === "home" && "💌"}
+          {tab === "cycle" && "🩷"}
+          {tab === "gallery" && "📷"}
+          {tab === "garden" && "🌱"}
+          {tab === "thanks" && "🤍"}
+        </motion.div>
         <Bear size={72} />
         {bearPats > 0 && (
           <motion.span

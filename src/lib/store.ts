@@ -24,6 +24,14 @@ export type GalleryFavorite = {
 
 export type BearMood = "happy" | "love" | "sleepy" | "excited" | "shy";
 
+export type StickerTask =
+  | "water" // drank a cup of water
+  | "read" // read today's love note
+  | "hug" // sent a hug
+  | "pat" // patted the bear
+  | "garden" // watered a plant
+  | "reason"; // revealed a reason
+
 type KidifyState = {
   // Onboarding
   bearName: string | null;
@@ -66,6 +74,14 @@ type KidifyState = {
   // Gallery favorites
   favorites: GalleryFavorite[];
 
+  // Reasons I Love You
+  revealedReasons: number[]; // indices of reasons she's flipped
+
+  // Daily stickers — which tasks she's completed today
+  stickerDate: string; // YYYY-MM-DD the stickers belong to
+  stickersEarnedToday: StickerTask[]; // tasks completed today
+  stickerCollection: { task: StickerTask; date: string }[]; // all-time collection
+
   // Admin
   adminUnlocked: boolean;
   adminTapCount: number;
@@ -105,6 +121,11 @@ type KidifyState = {
   sendHug: () => void;
   setAnniversary: (date: string) => void;
   refreshThirsty: () => void;
+
+  revealReason: (i: number) => void;
+
+  earnSticker: (task: StickerTask) => void;
+  resetStickersIfNewDay: () => void;
 
   resetAll: () => void;
 };
@@ -153,6 +174,10 @@ export const useKidify = create<KidifyState>()(
 
       readMessages: [],
       favorites: [],
+      revealedReasons: [],
+      stickerDate: todayStr(),
+      stickersEarnedToday: [],
+      stickerCollection: [],
       adminUnlocked: false,
       adminTapCount: 0,
       adminTapResetAt: null,
@@ -307,6 +332,37 @@ export const useKidify = create<KidifyState>()(
           };
         }),
 
+      revealReason: (i) =>
+        set((s) =>
+          s.revealedReasons.includes(i)
+            ? s
+            : { revealedReasons: [...s.revealedReasons, i] },
+        ),
+
+      earnSticker: (task) =>
+        set((s) => {
+          // reset if new day
+          const today = todayStr();
+          const earnedToday =
+            s.stickerDate === today ? s.stickersEarnedToday : [];
+          if (earnedToday.includes(task)) return s; // already earned today
+          return {
+            stickerDate: today,
+            stickersEarnedToday: [...earnedToday, task],
+            stickerCollection: [
+              ...s.stickerCollection,
+              { task, date: today },
+            ],
+          };
+        }),
+
+      resetStickersIfNewDay: () =>
+        set((s) =>
+          s.stickerDate !== todayStr()
+            ? { stickerDate: todayStr(), stickersEarnedToday: [] }
+            : s,
+        ),
+
       resetAll: () =>
         set({
           bearName: null,
@@ -328,6 +384,10 @@ export const useKidify = create<KidifyState>()(
           gardenCoins: 12,
           readMessages: [],
           favorites: [],
+          revealedReasons: [],
+          stickerDate: todayStr(),
+          stickersEarnedToday: [],
+          stickerCollection: [],
           adminUnlocked: false,
           adminTapCount: 0,
           adminTapResetAt: null,

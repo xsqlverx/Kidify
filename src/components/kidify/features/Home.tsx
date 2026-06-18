@@ -1,13 +1,15 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Bear } from "../Bear";
 import { PinkCard, PinkButton, Pill, SectionTitle } from "../ui/decor";
 import { Confetti } from "../ui/confetti";
 import { Wardrobe } from "./Wardrobe";
 import { HugButton } from "./HugButton";
 import { DaysCounter } from "./DaysCounter";
+import { ReasonsCard, ReasonsDeck } from "./Reasons";
+import { StickerStrip, StickerBook } from "./Stickers";
 import { useKidify } from "@/lib/store";
 import { useDailyMessage } from "@/lib/data-access";
 import type { DailyMessage } from "@/lib/mock-data";
@@ -23,13 +25,22 @@ export function HomeFeature() {
   const readMessages = useKidify((s) => s.readMessages);
   const bearPats = useKidify((s) => s.bearPats);
   const hugsSent = useKidify((s) => s.hugsSent);
+  const earnSticker = useKidify((s) => s.earnSticker);
+  const resetStickersIfNewDay = useKidify((s) => s.resetStickersIfNewDay);
 
   const [dayOffset, setDayOffset] = useState(0); // 0 = today
   const [wardrobeOpen, setWardrobeOpen] = useState(false);
+  const [reasonsOpen, setReasonsOpen] = useState(false);
+  const [stickersOpen, setStickersOpen] = useState(false);
   const [confettiFire, setConfettiFire] = useState(0);
   const celebratedRef = useRef(false);
   const today = useDailyMessage(0);
   const msg: DailyMessage = useDailyMessage(dayOffset);
+
+  // reset daily sticker count on a new day
+  useEffect(() => {
+    resetStickersIfNewDay();
+  }, [resetStickersIfNewDay]);
 
   const greeting = useMemo(() => {
     const h = new Date().getHours();
@@ -46,6 +57,7 @@ export function HomeFeature() {
 
   const handleRead = () => {
     markMessageRead(msg.date);
+    if (isToday) earnSticker("read");
     toast.success("marked as read. 💗", {
       description: "he'll know you saw it.",
     });
@@ -54,6 +66,7 @@ export function HomeFeature() {
   const handleWater = () => {
     const willComplete = waterCups + 1 >= waterGoal && waterCups < waterGoal;
     addWater(1);
+    earnSticker("water");
     if (willComplete) {
       toast.success("you did it! 💧", {
         description: `${bearName} is so proud of you.`,
@@ -135,6 +148,16 @@ export function HomeFeature() {
       >
         <PinkCard className="relative overflow-hidden">
           <div className="absolute -right-6 -top-6 text-7xl opacity-10">{msg.sticker}</div>
+          {/* wax seal stamp */}
+          <motion.div
+            className="absolute -bottom-3 -left-3 flex h-12 w-12 rotate-[-12deg] items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-rose-700 text-white shadow-glow-rose"
+            initial={{ scale: 0, rotate: -40 }}
+            animate={{ scale: 1, rotate: -12 }}
+            transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 12 }}
+            aria-hidden
+          >
+            <span className="font-display text-xs font-bold leading-none">with<br />love</span>
+          </motion.div>
 
           <div className="mb-3 flex items-center justify-between">
             <Pill>
@@ -182,6 +205,24 @@ export function HomeFeature() {
             <p className="mt-4 text-center text-xs text-rose-300">a note from {msg.date}</p>
           )}
         </PinkCard>
+      </motion.div>
+
+      {/* reasons i love you */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.14 }}
+      >
+        <ReasonsCard onOpen={() => setReasonsOpen(true)} />
+      </motion.div>
+
+      {/* today's little wins (sticker strip) */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+      >
+        <StickerStrip onOpen={() => setStickersOpen(true)} />
       </motion.div>
 
       {/* send a hug */}
@@ -291,8 +332,10 @@ export function HomeFeature() {
         <span>🧸 you've given {bearName} {bearPats} {bearPats === 1 ? "pat" : "pats"}. it's keeping count.</span>
       </motion.div>
 
-      {/* wardrobe sheet */}
+      {/* sheets & modals */}
       <Wardrobe open={wardrobeOpen} onClose={() => setWardrobeOpen(false)} />
+      <ReasonsDeck open={reasonsOpen} onClose={() => setReasonsOpen(false)} />
+      <StickerBook open={stickersOpen} onClose={() => setStickersOpen(false)} />
     </div>
   );
 }

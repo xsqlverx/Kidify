@@ -27,6 +27,7 @@ const HUG_MESSAGES = [
 
 export function HugButton() {
   const sendHug = useKidify((s) => s.sendHug);
+  const earnSticker = useKidify((s) => s.earnSticker);
   const hugsSent = useKidify((s) => s.hugsSent);
   const [particles, setParticles] = useState<HeartParticle[]>([]);
   const [burst, setBurst] = useState(false);
@@ -36,6 +37,7 @@ export function HugButton() {
   const handleHug = useCallback(() => {
     if (cooldown) return;
     sendHug();
+    earnSticker("hug");
     setBurst(true);
     setTimeout(() => setBurst(false), 1200);
 
@@ -62,7 +64,7 @@ export function HugButton() {
     toast.success(HUG_MESSAGES[Math.floor(Math.random() * HUG_MESSAGES.length)], {
       description: hugsSent + 1 === 1 ? "your first hug. 🤍" : `that's ${hugsSent + 1} hugs sent.`,
     });
-  }, [cooldown, sendHug, hugsSent]);
+  }, [cooldown, sendHug, earnSticker, hugsSent]);
 
   return (
     <div className="relative flex flex-col items-center">

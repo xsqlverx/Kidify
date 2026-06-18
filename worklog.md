@@ -107,3 +107,43 @@ Stage Summary:
 - New files: `Wardrobe.tsx`, `HugButton.tsx`, `DaysCounter.tsx`, `confetti.tsx`.
 - Modified files: `store.ts` (new state + actions + partialize), `Bear.tsx` (glasses + halo accessories), `Home.tsx` (integrated all new features), `Garden.tsx` (thirst-over-time), `AppShell.tsx` (relative wrapper).
 - Next round priorities: PWA manifest, bear mood per-tab, premium-coin deduction, backend wiring.
+
+---
+
+Task ID: round-3
+Agent: main (webDevReview cron)
+Task: QA the app, fix the lingering scroll warning, add new features (Reasons I Love You flip-card deck, Daily Sticker Rewards, bear context-aware prop), polish styling, and verify.
+
+Work Log:
+- Re-read worklog.md (rounds 1 + 2) to understand current state: Phase 1 + wardrobe/hug/days-counter/confetti/thirst-over-time all done.
+- QA'd the full app fresh with agent-browser (iPhone 14): onboarding → unlock → all 5 tabs → modals. One remaining framer-motion scroll warning on ThankYou.
+- Fixed the scroll warning by removing `useScroll`/`useTransform` from ThankYou.tsx entirely and replacing the hero-heart scroll-linked animation with a gentle infinite scale/opacity pulse. Removed the unused `useRef` import. Warning is now gone.
+- Extended the Zustand store (`src/lib/store.ts`) with new state: `revealedReasons` (indices of flipped reason cards), `stickerDate`, `stickersEarnedToday`, `stickerCollection` (all-time). Added a `StickerTask` type (`water|read|hug|pat|garden|reason`). Added actions: `revealReason`, `earnSticker` (idempotent per day, auto-resets on new day), `resetStickersIfNewDay`. Wired all new fields into `resetAll`.
+- Created `src/lib/reasons-data.ts` — 22 handwritten, emotionally specific "reasons I love you" entries (each with an emoji + a personal, detailed sentence).
+- Built `src/components/kidify/features/Reasons.tsx`:
+  - `ReasonsDeck` — a full-screen portaled flip-card deck. Each card starts as a sealed pink envelope (back face); tapping flips it (3D rotateY spring) to reveal the reason on a cream paper card (front face). Progress dots show which of the 22 are revealed. Prev/next arrows navigate. Revealing a new reason fires a toast ("a new reason, kept safe") and earns the `reason` sticker. The deck opens at the first unrevealed reason.
+  - `ReasonsCard` — a compact Home-tab card with a bouncing 💌 icon, progress bar, and a "new" badge when there's an unrevealed reason.
+- Built `src/components/kidify/features/Stickers.tsx`:
+  - `StickerBook` — a portaled bottom-sheet showing 6 daily care tasks (💧 water, 📖 read, 🤗 hug, 🧸 pat, 🌱 garden, 💌 reason) as a sticker grid. Earned stickers are full-color with a ✓ badge + bounce animation; unearned are grayscale with 🔒. An all-time collection section shows per-task counts. A "you did every little thing today" celebration appears when all 6 are done.
+  - `StickerStrip` — a compact Home-tab card showing the 6 task emojis (earned=full color+bounce, unearned=dimmed) and a progress bar.
+- Wired `earnSticker` into all 6 interaction points: `Home.handleRead` (read), `Home.handleWater` (water), `HugButton.handleHug` (hug), `Bear.handleTap` (pat), `Garden.handleWater` (garden), `Reasons.handleFlip` (reason).
+- Added bear context-aware prop bubble to the floating bear in AppShell: a small white circle that shows 💌 (home), 🩷 (cycle), 📷 (gallery), 🌱 (garden), 🤍 (thanks) and spring-animatedly swaps when she changes tabs.
+- Built `src/components/kidify/ui/skeleton.tsx` — a reusable shimmering pink `Skeleton` block + a `LoveNoteSkeleton` placeholder shaped like the daily note card (for future loading states).
+- Added a wax-seal stamp to the daily love-note card on Home: a rotated rose-gradient circle stamped "with love" that springs in after the card mounts.
+- Restructured Home to integrate the new Reasons card + Sticker strip between the love note and the hug button, with staggered entrance animations.
+- Fixed 2 lint errors during development (setState-in-effect in HugButton/Confetti from round 2 were already resolved; this round's new code was clean on first lint).
+
+Stage Summary:
+- `bun run lint` — clean (0 errors, 0 warnings).
+- Dev server compiles and serves 200s; no runtime errors.
+- Agent-browser verification (all PASSED):
+  - ThankYou scroll warning: GONE (console clean across all tabs). ✅
+  - Reasons deck: opens from Home, flip card animates 3D, reason #1 revealed, toast fires, "1 of 22 revealed" updates. ✅
+  - Sticker earning flow: read note → 💧 water → 🧸 pat → stickers count goes 1→2→3→4, persisted as `["reason","read","water","pat"]` in localStorage. ✅
+  - Sticker book: opens, shows 6 task grid with earned/unearned states + all-time collection counts. ✅
+  - Bear context prop: 🌱 shows on garden tab, swaps per tab. ✅
+  - Wax seal: renders on love-note card. ✅
+  - No console/page errors across all 5 tabs + 3 modals. ✅
+- New files: `reasons-data.ts`, `Reasons.tsx`, `Stickers.tsx`, `skeleton.tsx`.
+- Modified files: `store.ts` (reasons + stickers state/actions), `ThankYou.tsx` (removed useScroll), `Home.tsx` (integrated Reasons + Stickers + wax seal + earnSticker calls), `HugButton.tsx` (earnSticker hug), `Bear.tsx` (earnSticker pat), `Garden.tsx` (earnSticker garden), `AppShell.tsx` (bear context prop).
+- Next round priorities: PWA manifest, backend wiring, premium-coin deduction for wardrobe, more reasons (admin-editable), ambient sound toggle.

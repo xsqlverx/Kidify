@@ -46,6 +46,7 @@ export function Bear({ size = 120, className, interactive = true, mood: moodOver
   const patBear = useKidify((s) => s.patBear);
   const registerAdminTap = useKidify((s) => s.registerAdminTap);
   const unlockAdmin = useKidify((s) => s.unlockAdmin);
+  const earnSticker = useKidify((s) => s.earnSticker);
   const setBearMood = useKidify((s) => s.setBearMood);
 
   const mood = moodOverride ?? bearMood;
@@ -81,6 +82,7 @@ export function Bear({ size = 120, className, interactive = true, mood: moodOver
 
     if (interactive) {
       patBear();
+      earnSticker("pat");
       // secret: 7 quick taps unlock admin
       const unlocked = registerAdminTap();
       if (unlocked) {
@@ -89,7 +91,7 @@ export function Bear({ size = 120, className, interactive = true, mood: moodOver
         setTimeout(() => setSparkle(false), 2000);
       }
     }
-  }, [interactive, patBear, registerAdminTap, unlockAdmin]);
+  }, [interactive, patBear, earnSticker, registerAdminTap, unlockAdmin]);
 
   // eye state by mood
   const eyeShape =

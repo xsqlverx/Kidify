@@ -68,6 +68,7 @@ export function Garden() {
   const waterPlant = useKidify((s) => s.waterPlant);
   const removePlant = useKidify((s) => s.removePlant);
   const refreshThirsty = useKidify((s) => s.refreshThirsty);
+  const earnSticker = useKidify((s) => s.earnSticker);
 
   // On mount and every 60s, mark plants thirsty again if 8h have passed
   // since they were last watered.
@@ -102,6 +103,7 @@ export function Garden() {
       return;
     }
     waterPlant(p.id);
+    earnSticker("garden");
     if (p.growth + 1 >= 4) {
       toast.success("fully grown! 🌸", {
         description: "+2 coins. you're a natural.",
