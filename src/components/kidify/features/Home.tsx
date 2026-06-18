@@ -22,6 +22,7 @@ import { MoodInsights } from "./MoodInsights";
 import { SurpriseBox } from "./SurpriseBox";
 import { GratitudeJar } from "./GratitudeJar";
 import { AmbientSound } from "./AmbientSound";
+import { DailyQuote } from "./DailyQuote";
 import { useKidify } from "@/lib/store";
 import { useDailyMessage } from "@/lib/data-access";
 import type { DailyMessage } from "@/lib/mock-data";
@@ -254,6 +255,15 @@ export function HomeFeature() {
         transition={{ delay: 0.13 }}
       >
         <AffirmationCard />
+      </motion.div>
+
+      {/* daily love quote */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.135 }}
+      >
+        <DailyQuote />
       </motion.div>
 
       {/* reasons i love you */}

@@ -180,7 +180,7 @@ export function DaysCounter() {
       </div>
 
       {nextMilestone && daysToNext !== null && daysToNext > 0 && (
-        <div className="mt-3 rounded-2xl bg-rose-50/60 p-2.5 text-center">
+        <div className="mt-3 rounded-2xl bg-rose-50/60 p-3 text-center">
           <p className="flex items-center justify-center gap-1 text-[11px] text-rose-400">
             <Sparkles className="h-3 w-3" />
             {daysToNext} {daysToNext === 1 ? "day" : "days"} until{" "}
@@ -188,6 +188,32 @@ export function DaysCounter() {
               {nextMilestone.emoji} {nextMilestone.label}
             </span>
           </p>
+          {/* milestone progress track */}
+          <div className="mt-2 flex items-center gap-1">
+            {MILESTONES.map((m) => {
+              const reached = days !== null && days >= m.days;
+              const isNext = nextMilestone?.days === m.days;
+              return (
+                <div
+                  key={m.days}
+                  className={`flex-1 rounded-full transition-all ${
+                    reached
+                      ? "bg-gradient-to-r from-rose-400 to-pink-500"
+                      : isNext
+                        ? "bg-rose-300/60"
+                        : "bg-rose-200/40"
+                  }`}
+                  style={{ height: reached ? "6px" : isNext ? "5px" : "4px" }}
+                >
+                  {reached && (
+                    <div className="flex items-center justify-center pt-0.5 text-[8px]">
+                      {m.emoji}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

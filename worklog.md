@@ -479,3 +479,49 @@ Stage Summary:
 - New files: `GratitudeJar.tsx`, `AmbientSound.tsx`.
 - Modified files: `store.ts` (Gratitude type, gratitudes state, addGratitude/removeGratitude actions, resetAll), `Home.tsx` (integrated GratitudeJar + AmbientSound), `ThankYou.tsx` (gradient accent bars + gradient number badges), `next.config.ts` (allowedDevOrigins).
 - Next round priorities: Service worker for offline PWA, backend wiring (MongoDB+Cloudinary+Vercel), wish-granting animations, admin-editable story milestones, more breathing patterns (box breathing), gratitude insights/stats.
+
+---
+
+Task ID: round-10
+Agent: main (webDevReview cron)
+Task: QA the app, add new features (Box Breathing Pattern, Daily Love Quote), polish DaysCounter with milestone progress track, and verify.
+
+Work Log:
+- Re-read worklog.md (rounds 1-9) to understand current state: all previous features done (onboarding, bear, 5 tabs, wardrobe, hug, days counter, confetti, reasons, stickers, memory jar, breathing bubble, affirmation, star wish, mood diary, love letter archive, PWA manifest, pink glass toasts, self-care checklist, our story timeline, bear speech reactions, gallery featured image, surprise box, mood insights, garden stats, gratitude jar, ambient sound, ThankYou polish).
+- QA'd the full app fresh with agent-browser (iPhone 14): onboarding → unlock → all 5 tabs → modals. No runtime errors, no console warnings. App is stable.
+- Created `src/lib/quotes-data.ts` — 30 curated love quotes from literature (Maya Angelou, Emily Brontë, E.E. Cummings, F. Scott Fitzgerald, Nicholas Sparks, Gabriel García Márquez, Aristotle, Gandhi, and more).
+- Built `src/components/kidify/features/DailyQuote.tsx`:
+  - A daily love quote card that rotates by day-of-year (one per day).
+  - Quote text in handwritten font (font-hand) with author in uppercase tracking.
+  - 3 action buttons: share (uses navigator.share API with clipboard fallback), shuffle (random quote), favorite (toggle with count badge).
+  - Decorative quote marks (") in the corners at low opacity.
+  - Gradient background (rose-50/white/pink-50) for visual distinction.
+  - Favorites stored in local component state (resets on reload — intentionally ephemeral).
+- Enhanced BreathingBubble (`BreathingBubble.tsx`) with multiple breathing patterns:
+  - Added `Pattern` type with id/name/desc/phases/cycles.
+  - 3 patterns: 4-7-8 (calm & sleep, 3 cycles), box (focus & balance, 4 cycles), calm (quick reset, 5 cycles).
+  - Pattern picker UI: 3 buttons shown before starting, with active state highlight (border-rose-400, bg-rose-400/20).
+  - Dynamic cycle count: progress dots and completion detection use `targetCycles` from the selected pattern.
+  - Updated header to show pattern name and cycle count dynamically.
+  - Updated status text to reference `targetCycles` instead of hardcoded 3.
+  - Pattern switching disabled during running sessions (can only switch when idle and not yet started).
+  - Updated card subtitle: "4-7-8, box, or calm — pick your pattern".
+- Enhanced DaysCounter (`DaysCounter.tsx`) with milestone progress track:
+  - Added a visual progress track below the milestone text showing all 6 milestones (day one, one month, 100 days, one year, 500 days, 1000 days).
+  - Each milestone segment: gradient-filled (rose-400 to pink-500) when reached, rose-300/60 for the next milestone, rose-200/40 for future.
+  - Reached milestones show their emoji inside the segment.
+  - Height varies: 6px (reached), 5px (next), 4px (future) for visual hierarchy.
+- Integrated DailyQuote into Home (after AffirmationCard, before ReasonsCard) with staggered entrance animation.
+
+Stage Summary:
+- `bun run lint` — clean (0 errors, 0 warnings).
+- Dev server compiles and serves 200s; no runtime errors, no console warnings.
+- Agent-browser verification (all PASSED):
+  - Onboarding: full flow name → letter → unlock (code 2707) → app. ✅
+  - Daily Quote: renders with share/shuffle/favorite buttons, quote text "i love you not because you are perfect, but because you are perfect for me." visible (verified via DOM), shuffle cycles quotes, favorite toggles. ✅
+  - Breathing Patterns: card subtitle shows "4-7-8, box, or calm — pick your pattern", opening modal shows 3 pattern buttons (4-7-8/box/calm with descriptions), selecting box updates header to "box · 4 cycles", start button works. ✅
+  - DaysCounter: milestone progress track renders with 6 segments (verified via DOM — reached milestones show emoji, next milestone highlighted). ✅
+  - All 5 tabs cycle cleanly with no errors/warnings. ✅
+- New files: `quotes-data.ts`, `DailyQuote.tsx`.
+- Modified files: `BreathingBubble.tsx` (3 breathing patterns + pattern picker UI), `DaysCounter.tsx` (milestone progress track), `Home.tsx` (integrated DailyQuote).
+- Next round priorities: Service worker for offline PWA, backend wiring (MongoDB+Cloudinary+Vercel), wish-granting animations, admin-editable story milestones, gratitude insights/stats, love language quiz.
