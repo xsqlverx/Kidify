@@ -10,6 +10,8 @@ import { HugButton } from "./HugButton";
 import { DaysCounter } from "./DaysCounter";
 import { ReasonsCard, ReasonsDeck } from "./Reasons";
 import { StickerStrip, StickerBook } from "./Stickers";
+import { MemoryJar } from "./MemoryJar";
+import { BreathingBubble } from "./BreathingBubble";
 import { useKidify } from "@/lib/store";
 import { useDailyMessage } from "@/lib/data-access";
 import type { DailyMessage } from "@/lib/mock-data";
@@ -320,6 +322,24 @@ export function HomeFeature() {
             </p>
           )}
         </PinkCard>
+      </motion.div>
+
+      {/* breathing bubble — for the loud moments */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.22 }}
+      >
+        <BreathingBubble />
+      </motion.div>
+
+      {/* memory jar */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.24 }}
+      >
+        <MemoryJar />
       </motion.div>
 
       {/* bear pats footer */}

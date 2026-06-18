@@ -22,6 +22,14 @@ export type GalleryFavorite = {
   ts: number;
 };
 
+export type Memory = {
+  id: string;
+  text: string;
+  emoji: string;
+  date: string; // YYYY-MM-DD she wrote it
+  ts: number;
+};
+
 export type BearMood = "happy" | "love" | "sleepy" | "excited" | "shy";
 
 export type StickerTask =
@@ -74,6 +82,13 @@ type KidifyState = {
   // Gallery favorites
   favorites: GalleryFavorite[];
 
+  // Memory Jar
+  memories: Memory[];
+
+  // Breathing — last time she did a breathing exercise
+  lastBreathAt: number | null;
+  breathSessions: number;
+
   // Reasons I Love You
   revealedReasons: number[]; // indices of reasons she's flipped
 
@@ -121,6 +136,11 @@ type KidifyState = {
   sendHug: () => void;
   setAnniversary: (date: string) => void;
   refreshThirsty: () => void;
+
+  addMemory: (text: string, emoji: string) => void;
+  removeMemory: (id: string) => void;
+
+  logBreathSession: () => void;
 
   revealReason: (i: number) => void;
 
@@ -174,6 +194,9 @@ export const useKidify = create<KidifyState>()(
 
       readMessages: [],
       favorites: [],
+      memories: [],
+      lastBreathAt: null,
+      breathSessions: 0,
       revealedReasons: [],
       stickerDate: todayStr(),
       stickersEarnedToday: [],
@@ -332,6 +355,26 @@ export const useKidify = create<KidifyState>()(
           };
         }),
 
+      addMemory: (text, emoji) =>
+        set((s) => ({
+          memories: [
+            {
+              id: `mem-${Date.now()}`,
+              text: text.trim(),
+              emoji: emoji || "✨",
+              date: todayStr(),
+              ts: Date.now(),
+            },
+            ...s.memories,
+          ],
+        })),
+
+      removeMemory: (id) =>
+        set((s) => ({ memories: s.memories.filter((m) => m.id !== id) })),
+
+      logBreathSession: () =>
+        set((s) => ({ lastBreathAt: Date.now(), breathSessions: s.breathSessions + 1 })),
+
       revealReason: (i) =>
         set((s) =>
           s.revealedReasons.includes(i)
@@ -384,6 +427,9 @@ export const useKidify = create<KidifyState>()(
           gardenCoins: 12,
           readMessages: [],
           favorites: [],
+          memories: [],
+          lastBreathAt: null,
+          breathSessions: 0,
           revealedReasons: [],
           stickerDate: todayStr(),
           stickersEarnedToday: [],

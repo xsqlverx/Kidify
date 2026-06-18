@@ -147,3 +147,43 @@ Stage Summary:
 - New files: `reasons-data.ts`, `Reasons.tsx`, `Stickers.tsx`, `skeleton.tsx`.
 - Modified files: `store.ts` (reasons + stickers state/actions), `ThankYou.tsx` (removed useScroll), `Home.tsx` (integrated Reasons + Stickers + wax seal + earnSticker calls), `HugButton.tsx` (earnSticker hug), `Bear.tsx` (earnSticker pat), `Garden.tsx` (earnSticker garden), `AppShell.tsx` (bear context prop).
 - Next round priorities: PWA manifest, backend wiring, premium-coin deduction for wardrobe, more reasons (admin-editable), ambient sound toggle.
+
+---
+
+Task ID: round-4
+Agent: main (webDevReview cron)
+Task: QA the app, add new features (Memory Jar, Breathing Bubble), polish styling (aurora glow blobs), and verify.
+
+Work Log:
+- Re-read worklog.md (rounds 1-3) to understand current state: Phase 1 + wardrobe/hug/days-counter/confetti/thirst-over-time/reasons/stickers/bear-context-prop all done.
+- QA'd the full app fresh with agent-browser (iPhone 14): onboarding → unlock → all 5 tabs. No runtime errors, no console warnings. App is stable.
+- Extended the Zustand store (`src/lib/store.ts`) with new state: `memories` (array of Memory objects), `lastBreathAt`, `breathSessions`. Added `Memory` type (`id/text/emoji/date/ts`). Added actions: `addMemory`, `removeMemory`, `logBreathSession`. Wired all new fields into `resetAll`.
+- Built `src/components/kidify/features/MemoryJar.tsx`:
+  - A glass jar visualization where she can tuck in little happy memories.
+  - Empty state: animated 🫙 with a warm prompt ("every time something small makes you happy — a smell, a word, a moment — tuck it in here").
+  - Editor modal: 10-emoji picker (✨🤍🧸☕🌙🌷🫧💌🌸☁️), 300-char textarea with placeholder, character counter, save/cancel.
+  - Jar view: memories appear as tilted folded notes (each with its emoji) that she can tap to open in a handwritten-paper viewer modal. Each note has a delete option.
+  - Recent list: 4 most recent memories as compact rows.
+  - Persists to localStorage via the store.
+- Built `src/components/kidify/features/BreathingBubble.tsx`:
+  - A calming 4-7-8 breathing exercise (inhale 4s → hold 7s → exhale 8s → rest 2s) for stressful/period days.
+  - Full-screen portaled exercise with a breathing bubble that expands on inhale and contracts on exhale, with shimmer and glow rings.
+  - Phase indicator (emoji + label + countdown), 3-cycle target with progress dots, start/pause controls.
+  - Session counter persists in the store; completion toast ("there you are. 🤍 you did good. the bear is proud of you.").
+  - Compact Home card with pulsing Wind icon and 🫧 bubble, showing session count.
+- Added ambient aurora glow blobs to `FloatingDecor` in `decor.tsx`: 3 large blurred rose/violet/pink circles that slowly drift behind the content, adding depth and warmth to every screen.
+- Integrated MemoryJar and BreathingBubble into Home (after the water reminder, before the bear-pats footer), with staggered entrance animations.
+- Fixed a build-breaking bug: `Jar` icon doesn't exist in lucide-react (caused a 500 error). Replaced with `FlaskConical`. The error was caught via dev.log monitoring during QA.
+
+Stage Summary:
+- `bun run lint` — clean (0 errors, 0 warnings).
+- Dev server compiles and serves 200s; no runtime errors after the Jar→FlaskConical fix.
+- Agent-browser verification (all PASSED):
+  - Breathing exercise: opens from Home card, start button works, bubble animates, phase label shows "hold" with countdown, modal displays correctly. ✅
+  - Memory jar: empty state shows "your jar is empty" prompt, editor opens with emoji picker + textarea, memory saves to localStorage (`memories:[{id,text,emoji,date,ts}]`), appears as a folded note in the jar + in the recent list. ✅
+  - Aurora blobs: 3 blurred glow circles render in the background. ✅
+  - All 5 tabs cycle cleanly with no errors/warnings. ✅
+- New files: `MemoryJar.tsx`, `BreathingBubble.tsx`.
+- Modified files: `store.ts` (memories + breath state/actions), `Home.tsx` (integrated MemoryJar + BreathingBubble), `decor.tsx` (aurora glow blobs).
+- Bug fixed: `Jar` → `FlaskConical` icon import (lucide-react doesn't export `Jar`).
+- Next round priorities: PWA manifest, backend wiring, ambient sound toggle, memory jar search/filter, more breathing patterns (box breathing).

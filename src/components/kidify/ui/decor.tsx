@@ -23,6 +23,23 @@ export function FloatingDecor({ density = 14 }: { density?: number }) {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      {/* soft aurora glow blobs */}
+      <motion.div
+        className="absolute -left-20 top-1/4 h-72 w-72 rounded-full bg-rose-300/20 blur-3xl"
+        animate={{ x: [0, 30, 0], y: [0, -20, 0], opacity: [0.3, 0.5, 0.3] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute -right-20 top-1/2 h-80 w-80 rounded-full bg-violet-300/15 blur-3xl"
+        animate={{ x: [0, -25, 0], y: [0, 25, 0], opacity: [0.2, 0.4, 0.2] }}
+        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+      />
+      <motion.div
+        className="absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-pink-300/20 blur-3xl"
+        animate={{ x: [0, 20, 0], y: [0, -15, 0], opacity: [0.25, 0.45, 0.25] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+      />
+
       {items.map((it) => (
         <motion.div
           key={it.id}
