@@ -96,17 +96,33 @@ export function ThankYou() {
             transition={{ duration: 0.6, delay: 0.05 }}
           >
             <PinkCard
-              className="relative cursor-pointer overflow-hidden transition-transform hover:scale-[1.01]"
+              className="relative cursor-pointer overflow-hidden transition-all hover:scale-[1.01] hover:shadow-glow-rose/30"
               onClick={() => handleHeartTap(i)}
             >
+              {/* gradient accent bar on the left */}
+              <div
+                className="absolute bottom-4 left-0 top-4 w-1 rounded-r-full"
+                style={{
+                  background: [
+                    "linear-gradient(180deg, oklch(0.72 0.19 8), oklch(0.8 0.12 30))",
+                    "linear-gradient(180deg, oklch(0.8 0.12 30), oklch(0.78 0.14 340))",
+                    "linear-gradient(180deg, oklch(0.78 0.14 340), oklch(0.83 0.1 75))",
+                    "linear-gradient(180deg, oklch(0.83 0.1 75), oklch(0.7 0.16 290))",
+                    "linear-gradient(180deg, oklch(0.7 0.16 290), oklch(0.72 0.19 8))",
+                  ][i % 5],
+                }}
+              />
               <div className="absolute -right-3 -top-3 text-5xl opacity-10">
                 {["💗", "🌷", "✨", "🧸", "🌙"][i % 5]}
               </div>
 
               <div className="mb-2 flex items-center gap-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-rose-100 text-sm font-bold text-rose-500">
+                <motion.span
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-pink-500 text-sm font-bold text-white shadow-soft"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                >
                   {i + 1}
-                </span>
+                </motion.span>
                 <h3 className="font-display text-lg font-bold text-rose-600">{section.heading}</h3>
               </div>
 

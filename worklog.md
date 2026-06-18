@@ -427,3 +427,55 @@ Stage Summary:
 - Agent-browser verification: full breathing exercise completed with NO console errors (previously threw "Cannot update a component while rendering a different component"). ✅
 - Modified file: `BreathingBubble.tsx` (refactored tick to pure state update + useEffect for completion detection).
 - This was a regression from Round 4 (BreathingBubble was originally built with the nested-setState pattern). The error only surfaces when a breathing exercise is actually completed to 3 cycles, which is why it wasn't caught in earlier QA rounds that didn't run the full 63-second exercise.
+
+---
+
+Task ID: round-9
+Agent: main (webDevReview cron)
+Task: QA the app, fix cross-origin dev warning, add new features (Gratitude Jar, Ambient Sound Toggle), polish ThankYou styling, and verify.
+
+Work Log:
+- Re-read worklog.md (rounds 1-8 + bugfix) to understand current state: all previous features done. Last bugfix resolved the BreathingBubble setState-during-render error.
+- QA'd the full app fresh with agent-browser (iPhone 14): onboarding → unlock → all 5 tabs → modals. No runtime errors, no console warnings. App is stable.
+- Found dev.log warning: "Cross origin request detected from preview-chat-*.space-z.ai to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure 'allowedDevOrigins'". Fixed by adding `allowedDevOrigins: ["*.space-z.ai"]` to `next.config.ts`.
+- Extended the Zustand store (`src/lib/store.ts`) with new state:
+  - `Gratitude` type (id/text/emoji/date/ts).
+  - State field: `gratitudes` (Gratitude[]).
+  - Actions: `addGratitude`, `removeGratitude`.
+  - Wired into `resetAll`.
+- Built `src/components/kidify/features/GratitudeJar.tsx`:
+  - A gratitude journal card where she can note small things that went right each day.
+  - Empty state: animated 🫙 with "even on grey days, something went right" prompt.
+  - Editor modal: 12-emoji picker grid, 150-char textarea with counter, "keep this gratitude" button.
+  - List view: gratitudes as cards with emoji, text, date, and hover-to-reveal delete button. Max height with scroll.
+  - Counter footer: "N things to be glad for" with heart icon.
+  - Toast on save: "kept. 🤍" with "small gratitudes, big heart."
+- Built `src/components/kidify/features/AmbientSound.tsx`:
+  - An ambient sound player using the Web Audio API (no audio files needed — generates synthetic white noise filtered for rain, wind, and waves).
+  - 3 sound options: 🌧️ rain (bandpass filter, "soft, steady, forgiving"), 🌬️ wind (lowpass 400Hz, "a quiet hush through trees"), 🌊 waves (lowpass 600Hz + LFO modulation for gentle volume swells, "in and out, like breathing").
+  - Toggle behavior: tap to start, tap again to stop. Active sound has glow + pulsing icon.
+  - Volume slider (0-100%) appears when a sound is active, updates gain in real-time.
+  - "● playing" indicator with pulse animation.
+  - Toast on select: "🔊 rain on" with description.
+  - Proper cleanup: stops audio nodes on unmount, closes AudioContext.
+  - Pairs naturally with the BreathingBubble for calming moments.
+- Enhanced ThankYou page styling:
+  - Added gradient accent bars on the left side of each section card (5 rotating gradient colors matching the section emoji theme).
+  - Upgraded number badges from plain rose-100 circles to gradient-filled circles (from-rose-400 to-pink-500) with white text and shadow.
+  - Added hover rotate animation on number badges (scale 1.1, rotate 5deg).
+  - Enhanced card hover: added `hover:shadow-glow-rose/30` for deeper glow on hover.
+- Integrated GratitudeJar and AmbientSound into Home (after BreathingBubble, before MemoryJar) with staggered entrance animations.
+- Fixed `next.config.ts` cross-origin warning by adding `allowedDevOrigins`.
+
+Stage Summary:
+- `bun run lint` — clean (0 errors, 0 warnings).
+- Dev server compiles and serves 200s; no runtime errors, no console warnings (cross-origin warning resolved).
+- Agent-browser verification (all PASSED):
+  - Onboarding: full flow name → letter → unlock (code 2707) → app. ✅
+  - Ambient Sound: rain button starts playing, volume slider appears at 30%, "🔊 rain on" toast appears, "● playing" indicator shows. ✅
+  - Gratitude Jar: empty state shows 🫙 prompt, "add" opens editor with 12-emoji picker + textarea, filling "the way the light came through the window this morning" + saving adds it to the list, "kept. 🤍" toast appears, gratitude text visible in DOM, remove button shows on hover. ✅
+  - ThankYou: gradient accent bars render on section cards, gradient number badges visible, all 5 sections display. ✅
+  - All 5 tabs cycle cleanly with no errors/warnings. ✅
+- New files: `GratitudeJar.tsx`, `AmbientSound.tsx`.
+- Modified files: `store.ts` (Gratitude type, gratitudes state, addGratitude/removeGratitude actions, resetAll), `Home.tsx` (integrated GratitudeJar + AmbientSound), `ThankYou.tsx` (gradient accent bars + gradient number badges), `next.config.ts` (allowedDevOrigins).
+- Next round priorities: Service worker for offline PWA, backend wiring (MongoDB+Cloudinary+Vercel), wish-granting animations, admin-editable story milestones, more breathing patterns (box breathing), gratitude insights/stats.

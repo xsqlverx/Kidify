@@ -20,6 +20,8 @@ import { SelfCareChecklist } from "./SelfCareChecklist";
 import { OurStory } from "./OurStory";
 import { MoodInsights } from "./MoodInsights";
 import { SurpriseBox } from "./SurpriseBox";
+import { GratitudeJar } from "./GratitudeJar";
+import { AmbientSound } from "./AmbientSound";
 import { useKidify } from "@/lib/store";
 import { useDailyMessage } from "@/lib/data-access";
 import type { DailyMessage } from "@/lib/mock-data";
@@ -376,6 +378,24 @@ export function HomeFeature() {
         transition={{ delay: 0.22 }}
       >
         <BreathingBubble />
+      </motion.div>
+
+      {/* ambient sound — for the loud moments */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.23 }}
+      >
+        <AmbientSound />
+      </motion.div>
+
+      {/* gratitude jar */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.235 }}
+      >
+        <GratitudeJar />
       </motion.div>
 
       {/* memory jar */}

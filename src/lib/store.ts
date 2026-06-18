@@ -65,6 +65,14 @@ export type StoryMilestone = {
   ts: number;
 };
 
+export type Gratitude = {
+  id: string;
+  text: string;
+  emoji: string;
+  date: string; // YYYY-MM-DD
+  ts: number;
+};
+
 export type BearMood = "happy" | "love" | "sleepy" | "excited" | "shy";
 
 export type StickerTask =
@@ -136,6 +144,9 @@ type KidifyState = {
 
   // Our Story — relationship milestones
   storyMilestones: StoryMilestone[];
+
+  // Gratitude Jar — things she's grateful for
+  gratitudes: Gratitude[];
 
   // Daily surprise box — one little surprise per day
   surpriseDate: string; // YYYY-MM-DD the surprise belongs to
@@ -209,6 +220,9 @@ type KidifyState = {
 
   addMilestone: (emoji: string, title: string, date: string, note?: string) => void;
   removeMilestone: (id: string) => void;
+
+  addGratitude: (text: string, emoji: string) => void;
+  removeGratitude: (id: string) => void;
 
   openSurprise: () => void;
   resetSurpriseIfNewDay: () => void;
@@ -293,6 +307,7 @@ export const useKidify = create<KidifyState>()(
           ts: Date.now() - 86400000 * 10,
         },
       ],
+      gratitudes: [],
       surpriseDate: todayStr(),
       surpriseOpened: false,
       surpriseIndex: 0,
@@ -549,6 +564,25 @@ export const useKidify = create<KidifyState>()(
           storyMilestones: s.storyMilestones.filter((m) => m.id !== id),
         })),
 
+      addGratitude: (text, emoji) =>
+        set((s) => ({
+          gratitudes: [
+            {
+              id: `grat-${Date.now()}`,
+              text: text.trim(),
+              emoji: emoji || "🤍",
+              date: todayStr(),
+              ts: Date.now(),
+            },
+            ...s.gratitudes,
+          ],
+        })),
+
+      removeGratitude: (id) =>
+        set((s) => ({
+          gratitudes: s.gratitudes.filter((g) => g.id !== id),
+        })),
+
       openSurprise: () => {
         const today = todayStr();
         set((s) => {
@@ -636,6 +670,7 @@ export const useKidify = create<KidifyState>()(
           careDate: todayStr(),
           careDoneToday: [],
           storyMilestones: [],
+          gratitudes: [],
           surpriseDate: todayStr(),
           surpriseOpened: false,
           surpriseIndex: 0,
