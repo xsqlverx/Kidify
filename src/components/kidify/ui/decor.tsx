@@ -84,7 +84,7 @@ export const PinkButton = React.forwardRef<
 ));
 PinkButton.displayName = "PinkButton";
 
-/** Soft glassy pink card. */
+/** Soft glassy pink card with optional decorative corner. */
 export function PinkCard({
   className,
   children,
@@ -93,7 +93,7 @@ export function PinkCard({
   return (
     <div
       className={cn(
-        "glass-pink rounded-3xl p-5 shadow-soft",
+        "glass-pink rounded-3xl p-5 shadow-soft transition-shadow hover:shadow-glow-rose/20",
         className,
       )}
       {...props}

@@ -14,6 +14,8 @@ import { MemoryJar } from "./MemoryJar";
 import { BreathingBubble } from "./BreathingBubble";
 import { AffirmationCard } from "./Affirmation";
 import { StarWish } from "./StarWish";
+import { MoodDiary } from "./MoodDiary";
+import { LoveLetterArchive } from "./LoveLetterArchive";
 import { useKidify } from "@/lib/store";
 import { useDailyMessage } from "@/lib/data-access";
 import type { DailyMessage } from "@/lib/mock-data";
@@ -93,10 +95,29 @@ export function HomeFeature() {
         animate={{ opacity: 1, x: 0 }}
       >
         <div className="flex-1">
-          <p className="text-sm text-rose-400">{greeting}</p>
-          <h1 className="font-display text-2xl font-extrabold text-gradient-rose">
+          <motion.p
+            className="text-sm text-rose-400"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            {greeting}
+          </motion.p>
+          <motion.h1
+            className="font-display text-2xl font-extrabold text-gradient-rose"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
             welcome back, you
-          </h1>
+          </motion.h1>
+          <motion.div
+            className="mt-0.5 h-1 w-16 rounded-full bg-gradient-to-r from-rose-300 to-pink-400"
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ delay: 0.25, duration: 0.6 }}
+            style={{ transformOrigin: "left" }}
+          />
         </div>
         <button
           onClick={() => setWardrobeOpen(true)}
@@ -121,17 +142,17 @@ export function HomeFeature() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
       >
-        <div className="rounded-2xl bg-white/60 p-2.5 text-center backdrop-blur">
+        <div className="group rounded-2xl bg-white/60 p-2.5 text-center backdrop-blur transition-all hover:bg-white/80 hover:shadow-soft">
           <div className="font-display text-lg font-bold text-rose-500">{bearPats}</div>
-          <div className="text-[9px] font-semibold uppercase text-rose-400/70">bear pats</div>
+          <div className="text-[9px] font-semibold uppercase text-rose-400/70">🧸 bear pats</div>
         </div>
-        <div className="rounded-2xl bg-white/60 p-2.5 text-center backdrop-blur">
+        <div className="group rounded-2xl bg-white/60 p-2.5 text-center backdrop-blur transition-all hover:bg-white/80 hover:shadow-soft">
           <div className="font-display text-lg font-bold text-rose-500">{hugsSent}</div>
-          <div className="text-[9px] font-semibold uppercase text-rose-400/70">hugs sent</div>
+          <div className="text-[9px] font-semibold uppercase text-rose-400/70">🤗 hugs sent</div>
         </div>
-        <div className="rounded-2xl bg-white/60 p-2.5 text-center backdrop-blur">
+        <div className="group rounded-2xl bg-white/60 p-2.5 text-center backdrop-blur transition-all hover:bg-white/80 hover:shadow-soft">
           <div className="font-display text-lg font-bold text-sky-500">{Math.min(waterCups, waterGoal)}/{waterGoal}</div>
-          <div className="text-[9px] font-semibold uppercase text-sky-400/70">water</div>
+          <div className="text-[9px] font-semibold uppercase text-sky-400/70">💧 water</div>
         </div>
       </motion.div>
 
@@ -362,12 +383,30 @@ export function HomeFeature() {
         <StarWish />
       </motion.div>
 
+      {/* love letter archive */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.28 }}
+      >
+        <LoveLetterArchive />
+      </motion.div>
+
+      {/* mood diary */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.30 }}
+      >
+        <MoodDiary />
+      </motion.div>
+
       {/* bear pats footer */}
       <motion.div
         className="flex items-center justify-center gap-2 pt-1 text-xs text-rose-400/70"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.24 }}
+        transition={{ delay: 0.32 }}
       >
         <span>🧸 you've given {bearName} {bearPats} {bearPats === 1 ? "pat" : "pats"}. it's keeping count.</span>
       </motion.div>

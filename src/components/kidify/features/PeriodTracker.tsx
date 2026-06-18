@@ -119,8 +119,7 @@ export function PeriodTracker() {
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-        >
-          <PinkCard className={`overflow-hidden ${phase.bg} border-0`}>
+        >          <PinkCard className={`overflow-hidden ${phase.bg} border-0`}>
             <div className="flex items-center gap-3">
               <motion.div
                 className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/80 text-3xl"
@@ -136,6 +135,25 @@ export function PeriodTracker() {
                 <h3 className={`font-display text-xl font-bold ${phase.color}`}>{phase.name}</h3>
               </div>
             </div>
+
+            {/* cycle progress bar */}
+            <div className="mt-3">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-white/50">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-r from-rose-400 via-amber-400 to-violet-400"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(100, (dayOfCycle / cycleLength) * 100)}%` }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                />
+              </div>
+              <div className="mt-1 flex justify-between text-[9px] font-semibold text-rose-500/50">
+                <span>resting</span>
+                <span>blooming</span>
+                <span>glowing</span>
+                <span>softening</span>
+              </div>
+            </div>
+
             <p className="mt-3 text-sm leading-relaxed text-rose-900/70">{phase.desc}</p>
 
             <div className="mt-4 grid grid-cols-2 gap-2">

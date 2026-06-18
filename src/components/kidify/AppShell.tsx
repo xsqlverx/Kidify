@@ -53,10 +53,10 @@ export function AppShell() {
           <motion.div
             key={tab}
             className="relative"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.28 }}
+            initial={{ opacity: 0, y: 16, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ duration: 0.32, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
             {tab === "home" && <HomeFeature />}
             {tab === "cycle" && <PeriodTracker />}
@@ -119,7 +119,7 @@ export function AppShell() {
       )}
 
       {/* bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-rose-100/60 bg-white/70 backdrop-blur-xl">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-rose-100/60 bg-gradient-to-t from-white/90 via-white/80 to-white/70 backdrop-blur-xl">
         <div className="mx-auto flex max-w-md items-stretch justify-around px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2">
           {TABS.map(({ id, label, icon: Icon }) => {
             const active = tab === id;

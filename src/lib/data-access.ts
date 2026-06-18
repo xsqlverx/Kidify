@@ -20,6 +20,15 @@ export function useDailyMessage(dayOffset: number = 0): DailyMessage {
   return override ?? base;
 }
 
+/** Get a range of daily messages (non-hook, for bulk access). */
+export function getMessagesForRange(fromOffset: number, toOffset: number): DailyMessage[] {
+  const results: DailyMessage[] = [];
+  for (let i = fromOffset; i <= toOffset; i++) {
+    results.push(i === 0 ? getDailyMessage() : getMessageForOffset(i));
+  }
+  return results;
+}
+
 /** All gallery images: admin-posted first, then defaults. */
 export function useGalleryImages(): GalleryImage[] {
   const custom = useAdmin((s) => s.customGallery);

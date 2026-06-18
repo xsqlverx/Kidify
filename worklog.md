@@ -227,3 +227,56 @@ Stage Summary:
 - New files: `affirmations-data.ts`, `Affirmation.tsx`, `StarWish.tsx`.
 - Modified files: `store.ts` (affirmations + wishes state/actions), `Home.tsx` (integrated Affirmation + StarWish), `Onboarding.tsx` (wax seal + address line, removed unused Heart import).
 - Next round priorities: PWA manifest, backend wiring, ambient sound toggle, wish-granting animations, affirmation-of-the-day notification.
+
+---
+
+Task ID: round-6
+Agent: main (webDevReview cron)
+Task: QA the app, add new features (Mood Diary, Love Letter Archive, PWA manifest), polish styling, and verify.
+
+Work Log:
+- Re-read worklog.md (rounds 1-5) to understand current state: Phase 1 + wardrobe/hug/days-counter/confetti/thirst-over-time/reasons/stickers/bear-context-prop/memory-jar/breathing-bubble/aurora-blobs/affirmation/star-wish all done.
+- QA'd the full app fresh with agent-browser (iPhone 14): onboarding → unlock → all 5 tabs → modals. No runtime errors, no console warnings. App is stable.
+- Extended the Zustand store (`src/lib/store.ts`) with new state: `moodToday` (MoodEntry | null), `moodHistory` (MoodEntry[]). Added `MoodEntry` type (`date/emoji/label/note/ts`). Added action: `logMood` (replaces today's entry if already logged). Wired all new fields into `resetAll`.
+- Added `getMessagesForRange` utility function to `data-access.ts` — a non-hook version for bulk message access (needed to avoid React hooks-in-loop rule).
+- Built `src/components/kidify/features/MoodDiary.tsx`:
+  - A gentle daily mood tracker with 8 cute mood options: 🌸 soft & gentle, ☀️ sunny & bright, 🧸 cozy & safe, 🌊 up & down, 🌧️ a little grey, ⚡ wired & restless, 🤍 quiet & okay, 🔥 fired up.
+  - Empty state: animated 🫧 with "take a breath. how does today feel?" prompt + "log your mood" button.
+  - Logged state: displays current mood emoji + label with optional note, "change today's mood" link.
+  - Picker modal: 2-column grid of mood options with selection highlight + glow, optional note textarea, "save today's mood" button.
+  - History modal: chronological list of past moods with emoji, label, date, and note.
+  - Toast notification on save: "noted. 🤍" with mood emoji + label.
+- Built `src/components/kidify/features/LoveLetterArchive.tsx`:
+  - A compact button card showing "love letter archive" with read count (e.g. "0 of 7 this week").
+  - Opens a portaled timeline modal with the last 7 days of love notes.
+  - Each note has a timeline dot (✓ read or sticker emoji unread), date label, title, body preview (line-clamp-3), and handwritten signature.
+  - Vertical gradient line connects the timeline dots.
+  - Today's dot pulses gently.
+- Added PWA manifest (`public/manifest.json`): standalone display, rose theme color, bear icon, portrait orientation.
+- Updated `layout.tsx`: added `manifest: "/manifest.json"` and `appleWebApp` metadata for iOS installability.
+- Fixed critical bug: the layout was using the shadcn `Toaster` (from `@/components/ui/toaster`) but the app uses `toast` from `sonner`. Swapped to the `Sonner` Toaster from `@/components/ui/sonner`.
+- Themed the Sonner Toaster with Kidify's pink glass aesthetic (glass-pink background, rose border, rounded corners, Quicksand font).
+- Enhanced `globals.css` with 6 new CSS animations: `pulse-soft`, `slide-up-fade`, `shimmer-pink`, `gentle-bounce`, `spin-slow`, `fade-in-scale`.
+- Enhanced `PinkCard` with subtle hover shadow transition (`hover:shadow-glow-rose/20`).
+- Enhanced Home greeting: staggered entrance for greeting text + title, animated underline gradient bar that scales in from left.
+- Enhanced quick stats row: added emoji to labels (🧸 bear pats, 🤗 hugs sent, 💧 water), hover effects with shadow.
+- Enhanced AppShell page transitions: added scale (0.98 → 1) + custom easing curve for smoother tab switches.
+- Enhanced bottom nav: gradient background (`bg-gradient-to-t from-white/90 via-white/80 to-white/70`) for smoother visual blending.
+- Enhanced ThankYou page: inner glow ring animation on the hero heart, decorative gradient underline after the title and closing section.
+- Enhanced PeriodTracker: added cycle progress bar with gradient fill (rose → amber → violet), phase labels below the bar.
+- Fixed lint error: `useDailyMessage` called in a loop in `LoveLetterArchive.tsx`. Created `getMessagesForRange()` non-hook function and used `useMemo` instead.
+
+Stage Summary:
+- `bun run lint` — clean (0 errors, 0 warnings).
+- Dev server compiles and serves 200s; no runtime errors.
+- Agent-browser verification (all PASSED):
+  - Onboarding: full flow name → letter → unlock (code 2707) → app. ✅
+  - Love Letter Archive: opens modal, shows 7-day timeline with letter cards, read/unread states visible. ✅
+  - Mood Diary: opens picker, 8 mood options render, selecting "cozy & safe" shows save button, saving shows toast "noted. 🤍 🧸 cozy & safe", mood card updates to show selected mood. ✅
+  - PWA manifest: `<link rel="manifest">` correctly references `/manifest.json`. ✅
+  - Toast notifications: now render with pink glass styling (was broken before due to wrong Toaster component). ✅
+  - All 5 tabs cycle cleanly with no errors/warnings. ✅
+- New files: `MoodDiary.tsx`, `LoveLetterArchive.tsx`, `manifest.json`.
+- Modified files: `store.ts` (mood state/actions), `data-access.ts` (getMessagesForRange), `layout.tsx` (manifest + Sonner Toaster), `sonner.tsx` (pink glass theming), `globals.css` (6 new animations), `decor.tsx` (PinkCard hover), `Home.tsx` (integrated MoodDiary + LoveLetterArchive + enhanced greeting/stats), `AppShell.tsx` (better page transitions + nav gradient), `ThankYou.tsx` (inner glow ring + decorative underlines), `PeriodTracker.tsx` (cycle progress bar).
+- Bug fixed: Wrong Toaster component was being used (shadcn instead of Sonner), causing all toast notifications to be invisible.
+- Next round priorities: Service worker for offline/PWA, backend wiring (MongoDB+Cloudinary+Vercel), ambient sound toggle, bear mood per-tab animations, wish-granting animations, mood diary insights/stats.

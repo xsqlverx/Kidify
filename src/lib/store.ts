@@ -38,6 +38,14 @@ export type Wish = {
   granted: boolean; // always false for now; a gentle future hook
 };
 
+export type MoodEntry = {
+  date: string; // YYYY-MM-DD
+  emoji: string;
+  label: string;
+  note?: string;
+  ts: number;
+};
+
 export type BearMood = "happy" | "love" | "sleepy" | "excited" | "shy";
 
 export type StickerTask =
@@ -99,6 +107,10 @@ type KidifyState = {
   // Wishes — stars she's wished upon
   wishes: Wish[];
 
+  // Mood diary — how she's feeling today
+  moodToday: MoodEntry | null;
+  moodHistory: MoodEntry[];
+
   // Breathing — last time she did a breathing exercise
   lastBreathAt: number | null;
   breathSessions: number;
@@ -159,6 +171,8 @@ type KidifyState = {
   addWish: (text: string) => void;
   removeWish: (id: string) => void;
 
+  logMood: (emoji: string, label: string, note?: string) => void;
+
   logBreathSession: () => void;
 
   revealReason: (i: number) => void;
@@ -216,6 +230,8 @@ export const useKidify = create<KidifyState>()(
       memories: [],
       savedAffirmations: [],
       wishes: [],
+      moodToday: null,
+      moodHistory: [],
       lastBreathAt: null,
       breathSessions: 0,
       revealedReasons: [],
@@ -417,6 +433,19 @@ export const useKidify = create<KidifyState>()(
       removeWish: (id) =>
         set((s) => ({ wishes: s.wishes.filter((w) => w.id !== id) })),
 
+      logMood: (emoji, label, note) => {
+        const today = todayStr();
+        const entry: MoodEntry = { date: today, emoji, label, note, ts: Date.now() };
+        set((s) => {
+          // replace today's entry if already logged
+          const history = s.moodHistory.filter((m) => m.date !== today);
+          return {
+            moodToday: entry,
+            moodHistory: [entry, ...history],
+          };
+        });
+      },
+
       logBreathSession: () =>
         set((s) => ({ lastBreathAt: Date.now(), breathSessions: s.breathSessions + 1 })),
 
@@ -475,6 +504,8 @@ export const useKidify = create<KidifyState>()(
           memories: [],
           savedAffirmations: [],
           wishes: [],
+          moodToday: null,
+          moodHistory: [],
           lastBreathAt: null,
           breathSessions: 0,
           revealedReasons: [],

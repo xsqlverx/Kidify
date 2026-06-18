@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Quicksand, Baloo_2, Caveat } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner";
 
 const quicksand = Quicksand({
   variable: "--font-quicksand",
@@ -27,6 +27,12 @@ export const metadata: Metadata = {
   authors: [{ name: "with love" }],
   icons: {
     icon: "/kidify/bear-hero.png",
+  },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Kidify",
   },
   openGraph: {
     title: "Kidify",

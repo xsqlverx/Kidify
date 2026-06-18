@@ -29,7 +29,13 @@ export function ThankYou() {
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           >
-            <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-rose-200 to-pink-300 shadow-glow-rose">
+            <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-rose-200 via-pink-200 to-rose-300 shadow-glow-rose">
+              {/* inner glow ring */}
+              <motion.div
+                className="absolute inset-0 rounded-full border-2 border-rose-300/40"
+                animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0, 0.4] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
               <Heart className="h-14 w-14 fill-rose-500 text-rose-500" />
               {/* little orbiting hearts */}
               {[0, 90, 180, 270].map((deg) => (
@@ -62,8 +68,15 @@ export function ThankYou() {
         >
           thank you
         </motion.h1>
+        <motion.div
+          className="mx-auto mt-2 h-0.5 w-12 rounded-full bg-gradient-to-r from-rose-300 to-pink-400"
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+          style={{ transformOrigin: "center" }}
+        />
         <motion.p
-          className="mt-2 max-w-xs text-sm leading-relaxed text-rose-500/80"
+          className="mt-3 max-w-xs text-sm leading-relaxed text-rose-500/80"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -155,7 +168,8 @@ export function ThankYou() {
         <p className="mt-3 font-hand text-2xl text-rose-500">
           and that's just the start.
         </p>
-        <p className="mt-1 text-xs text-rose-400/70">
+        <div className="mx-auto mt-1 h-0.5 w-8 rounded-full bg-gradient-to-r from-rose-300 to-pink-400" />
+        <p className="mt-3 text-xs text-rose-400/70">
           tap any card to leave a little heart. {bearName} is keeping them safe.
         </p>
       </motion.div>
