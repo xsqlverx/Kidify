@@ -30,6 +30,14 @@ export type Memory = {
   ts: number;
 };
 
+export type Wish = {
+  id: string;
+  text: string;
+  date: string; // YYYY-MM-DD
+  ts: number;
+  granted: boolean; // always false for now; a gentle future hook
+};
+
 export type BearMood = "happy" | "love" | "sleepy" | "excited" | "shy";
 
 export type StickerTask =
@@ -84,6 +92,12 @@ type KidifyState = {
 
   // Memory Jar
   memories: Memory[];
+
+  // Affirmations — which ones she's saved
+  savedAffirmations: number[]; // indices into AFFIRMATIONS
+
+  // Wishes — stars she's wished upon
+  wishes: Wish[];
 
   // Breathing — last time she did a breathing exercise
   lastBreathAt: number | null;
@@ -140,6 +154,11 @@ type KidifyState = {
   addMemory: (text: string, emoji: string) => void;
   removeMemory: (id: string) => void;
 
+  toggleAffirmation: (i: number) => void;
+
+  addWish: (text: string) => void;
+  removeWish: (id: string) => void;
+
   logBreathSession: () => void;
 
   revealReason: (i: number) => void;
@@ -195,6 +214,8 @@ export const useKidify = create<KidifyState>()(
       readMessages: [],
       favorites: [],
       memories: [],
+      savedAffirmations: [],
+      wishes: [],
       lastBreathAt: null,
       breathSessions: 0,
       revealedReasons: [],
@@ -372,6 +393,30 @@ export const useKidify = create<KidifyState>()(
       removeMemory: (id) =>
         set((s) => ({ memories: s.memories.filter((m) => m.id !== id) })),
 
+      toggleAffirmation: (i) =>
+        set((s) => ({
+          savedAffirmations: s.savedAffirmations.includes(i)
+            ? s.savedAffirmations.filter((x) => x !== i)
+            : [...s.savedAffirmations, i],
+        })),
+
+      addWish: (text) =>
+        set((s) => ({
+          wishes: [
+            {
+              id: `wish-${Date.now()}`,
+              text: text.trim(),
+              date: todayStr(),
+              ts: Date.now(),
+              granted: false,
+            },
+            ...s.wishes,
+          ],
+        })),
+
+      removeWish: (id) =>
+        set((s) => ({ wishes: s.wishes.filter((w) => w.id !== id) })),
+
       logBreathSession: () =>
         set((s) => ({ lastBreathAt: Date.now(), breathSessions: s.breathSessions + 1 })),
 
@@ -428,6 +473,8 @@ export const useKidify = create<KidifyState>()(
           readMessages: [],
           favorites: [],
           memories: [],
+          savedAffirmations: [],
+          wishes: [],
           lastBreathAt: null,
           breathSessions: 0,
           revealedReasons: [],

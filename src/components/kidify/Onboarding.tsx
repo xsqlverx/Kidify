@@ -8,7 +8,7 @@ import { useKidify } from "@/lib/store";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Progress } from "@/components/ui/progress";
-import { Heart, Sparkles, Lock, AlertTriangle } from "lucide-react";
+import { Sparkles, Lock, AlertTriangle } from "lucide-react";
 
 // Prototype unlock code. In production this is verified server-side against
 // process.env.UNLOCK_CODE. Change this to whatever you and Shifa decide.
@@ -205,9 +205,20 @@ export function Onboarding() {
                       {/* envelope */}
                       <div className="relative h-44 w-64 rounded-2xl bg-gradient-to-br from-rose-100 to-pink-200 shadow-glow-rose">
                         <div className="absolute inset-0 rounded-2xl border-2 border-rose-300/50" />
-                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                          <Heart className="h-10 w-10 fill-rose-400 text-rose-400" />
+                        {/* address line — "to: my love" */}
+                        <div className="absolute left-4 top-16 text-left">
+                          <p className="font-hand text-sm text-rose-400/70">to:</p>
+                          <p className="font-hand text-lg font-semibold text-rose-500">my love</p>
                         </div>
+                        {/* wax seal */}
+                        <motion.div
+                          className="absolute -bottom-2 left-1/2 flex h-12 w-12 -translate-x-1/2 rotate-[-8deg] items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-rose-700 shadow-glow-rose"
+                          initial={{ scale: 0, rotate: -40 }}
+                          animate={{ scale: 1, rotate: -8 }}
+                          transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 12 }}
+                        >
+                          <span className="font-display text-[10px] font-bold leading-none text-white">S &amp; M</span>
+                        </motion.div>
                         {/* flap */}
                         <div className="absolute left-0 right-0 top-0 h-0 w-0 border-l-[128px] border-r-[128px] border-t-[60px] border-l-transparent border-r-transparent border-t-rose-300/70" style={{ clipPath: "polygon(0 0, 100% 0, 50% 70%)" }} />
                       </div>

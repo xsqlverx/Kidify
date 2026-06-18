@@ -12,6 +12,8 @@ import { ReasonsCard, ReasonsDeck } from "./Reasons";
 import { StickerStrip, StickerBook } from "./Stickers";
 import { MemoryJar } from "./MemoryJar";
 import { BreathingBubble } from "./BreathingBubble";
+import { AffirmationCard } from "./Affirmation";
+import { StarWish } from "./StarWish";
 import { useKidify } from "@/lib/store";
 import { useDailyMessage } from "@/lib/data-access";
 import type { DailyMessage } from "@/lib/mock-data";
@@ -209,6 +211,15 @@ export function HomeFeature() {
         </PinkCard>
       </motion.div>
 
+      {/* daily affirmation */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.13 }}
+      >
+        <AffirmationCard />
+      </motion.div>
+
       {/* reasons i love you */}
       <motion.div
         initial={{ opacity: 0, y: 14 }}
@@ -340,6 +351,15 @@ export function HomeFeature() {
         transition={{ delay: 0.24 }}
       >
         <MemoryJar />
+      </motion.div>
+
+      {/* star wish — make a wish upon a star */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.26 }}
+      >
+        <StarWish />
       </motion.div>
 
       {/* bear pats footer */}

@@ -187,3 +187,43 @@ Stage Summary:
 - Modified files: `store.ts` (memories + breath state/actions), `Home.tsx` (integrated MemoryJar + BreathingBubble), `decor.tsx` (aurora glow blobs).
 - Bug fixed: `Jar` → `FlaskConical` icon import (lucide-react doesn't export `Jar`).
 - Next round priorities: PWA manifest, backend wiring, ambient sound toggle, memory jar search/filter, more breathing patterns (box breathing).
+
+---
+
+Task ID: round-5
+Agent: main (webDevReview cron)
+Task: QA the app, add new features (Daily Affirmation card, Star Wish), polish onboarding envelope (wax seal + address line), and verify.
+
+Work Log:
+- Re-read worklog.md (rounds 1-4) to understand current state: Phase 1 + wardrobe/hug/days-counter/confetti/thirst-over-time/reasons/stickers/bear-context-prop/memory-jar/breathing-bubble/aurora-blobs all done.
+- QA'd the full app fresh with agent-browser (iPhone 14): onboarding → unlock → all 5 tabs. No runtime errors, no console warnings. App is stable.
+- Extended the Zustand store (`src/lib/store.ts`) with new state: `savedAffirmations` (indices into AFFIRMATIONS), `wishes` (array of Wish objects). Added `Wish` type (`id/text/date/ts/granted`). Added actions: `toggleAffirmation`, `addWish`, `removeWish`. Wired all new fields into `resetAll`.
+- Created `src/lib/affirmations-data.ts` — 15 handwritten, healing affirmations (e.g. "you are not too much. you are exactly enough, exactly as you are.", "your softness is not a weakness. it is the rarest, bravest thing.").
+- Built `src/components/kidify/features/Affirmation.tsx`:
+  - A daily affirmation card that rotates by day-of-year (one per day), with a spring-in emoji + handwritten affirmation text.
+  - Shuffle button ("another one") to cycle through affirmations on demand.
+  - Save/bookmark button with bookmark icon toggle — saved affirmations collect in a portaled "your saved affirmations" modal with remove option.
+  - Saved count badge on the card.
+- Built `src/components/kidify/features/StarWish.tsx`:
+  - A night-sky card with 20 twinkling stars (✦) and a floating moon (🌙).
+  - "wish" button opens a portaled wish-maker modal with a glowing star, "close your eyes for a second. what do you really want?" prompt, and a textarea.
+  - On "send it to the stars": a shooting star (🌠) animation flies across the screen with sparkle bursts, then the wish saves to the store with a toast ("your wish is on its way. 🌠 the stars are listening. they always are.").
+  - Wishes appear as ⭐ items in the night sky card, each with a hover-to-release trash button.
+  - Persists to localStorage.
+- Polished the onboarding envelope (`Onboarding.tsx`):
+  - Added a "to: my love" handwritten address line on the envelope.
+  - Added a wax-seal stamp (rose-gradient circle stamped "S & M") that springs in with rotation after the envelope appears.
+  - Removed the now-unused `Heart` import.
+- Integrated AffirmationCard (after the love note) and StarWish (after the memory jar) into Home with staggered entrance animations.
+
+Stage Summary:
+- `bun run lint` — clean (0 errors, 0 warnings).
+- Dev server compiles and serves 200s; no runtime errors.
+- Agent-browser verification (all PASSED):
+  - Affirmation card: renders with emoji + handwritten text, shuffle button cycles affirmations, save button increments "saved (1)" and persists to localStorage. ✅
+  - Star wish: wish-maker modal opens, textarea accepts text, "send it to the stars" triggers shooting star animation, wish saves to localStorage (`wishes:[{id,text,date,ts,granted:false}]`), appears as ⭐ in the night sky card. ✅
+  - Onboarding envelope: now shows "to: my love" address line + "S & M" wax seal (verified DOM: "envelope found: to:my loveS & M"). ✅
+  - All 5 tabs cycle cleanly with no errors/warnings after full onboarding. ✅
+- New files: `affirmations-data.ts`, `Affirmation.tsx`, `StarWish.tsx`.
+- Modified files: `store.ts` (affirmations + wishes state/actions), `Home.tsx` (integrated Affirmation + StarWish), `Onboarding.tsx` (wax seal + address line, removed unused Heart import).
+- Next round priorities: PWA manifest, backend wiring, ambient sound toggle, wish-granting animations, affirmation-of-the-day notification.
