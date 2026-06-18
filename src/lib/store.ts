@@ -1,0 +1,328 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { useSyncExternalStore } from "react";
+
+export type Plant = {
+  id: string;
+  type: "sprout" | "tulip" | "rose" | "sunflower" | "cactus";
+  name: string;
+  growth: number; // 0 - 4
+  lastWatered: number; // timestamp
+  thirsty: boolean;
+};
+
+export type PeriodLog = {
+  id: string;
+  date: string; // YYYY-MM-DD
+  note?: string;
+};
+
+export type GalleryFavorite = {
+  id: string;
+  ts: number;
+};
+
+export type BearMood = "happy" | "love" | "sleepy" | "excited" | "shy";
+
+type KidifyState = {
+  // Onboarding
+  bearName: string | null;
+  onboardingComplete: boolean;
+  unlocked: boolean;
+  unlockAttempts: number;
+  lockedUntil: number | null;
+
+  // Bear
+  bearMood: BearMood;
+  bearPats: number;
+  bearAccessory: "bow" | "flower" | "crown" | "scarf";
+
+  // Water
+  waterCups: number;
+  waterDate: string; // YYYY-MM-DD the count belongs to
+  waterGoal: number;
+
+  // Period
+  periodLogs: PeriodLog[];
+  cycleLength: number;
+  periodLength: number;
+
+  // Garden
+  plants: Plant[];
+  gardenCoins: number;
+  lastGardenVisit: number;
+
+  // Daily messages
+  readMessages: string[]; // dates read
+
+  // Gallery favorites
+  favorites: GalleryFavorite[];
+
+  // Admin
+  adminUnlocked: boolean;
+  adminTapCount: number;
+  adminTapResetAt: number | null;
+
+  // ---- actions ----
+  setBearName: (name: string) => void;
+  completeOnboarding: () => void;
+  setUnlocked: (v: boolean) => void;
+  registerWrongAttempt: () => { attempts: number; locked: boolean };
+  resetUnlockAttempts: () => void;
+  setLockedUntil: (ts: number | null) => void;
+
+  setBearMood: (m: BearMood) => void;
+  patBear: () => void;
+  setBearAccessory: (a: KidifyState["bearAccessory"]) => void;
+
+  addWater: (cups?: number) => void;
+  resetWaterIfNewDay: () => void;
+
+  addPeriodLog: (date: string, note?: string) => void;
+  removePeriodLog: (id: string) => void;
+
+  addPlant: (type: Plant["type"], name: string) => void;
+  waterPlant: (id: string) => void;
+  removePlant: (id: string) => void;
+  earnCoins: (n: number) => void;
+
+  markMessageRead: (date: string) => void;
+
+  toggleFavorite: (id: string) => void;
+
+  unlockAdmin: () => void;
+  registerAdminTap: () => boolean;
+
+  resetAll: () => void;
+};
+
+const todayStr = () => new Date().toISOString().slice(0, 10);
+
+const PLANT_TYPES: Plant["type"][] = ["sprout", "tulip", "rose", "sunflower", "cactus"];
+
+export const useKidify = create<KidifyState>()(
+  persist(
+    (set, get) => ({
+      bearName: null,
+      onboardingComplete: false,
+      unlocked: false,
+      unlockAttempts: 0,
+      lockedUntil: null,
+
+      bearMood: "happy",
+      bearPats: 0,
+      bearAccessory: "bow",
+
+      waterCups: 0,
+      waterDate: todayStr(),
+      waterGoal: 8,
+
+      periodLogs: [],
+      cycleLength: 28,
+      periodLength: 5,
+
+      plants: [
+        {
+          id: "seed-1",
+          type: "tulip",
+          name: "Rosie",
+          growth: 2,
+          lastWatered: Date.now() - 1000 * 60 * 60 * 20,
+          thirsty: true,
+        },
+      ],
+      gardenCoins: 12,
+      lastGardenVisit: Date.now(),
+
+      readMessages: [],
+      favorites: [],
+      adminUnlocked: false,
+      adminTapCount: 0,
+      adminTapResetAt: null,
+
+      setBearName: (name) => set({ bearName: name.trim() || "Bear" }),
+
+      completeOnboarding: () => set({ onboardingComplete: true }),
+
+      setUnlocked: (v) => set({ unlocked: v }),
+
+      registerWrongAttempt: () => {
+        const attempts = get().unlockAttempts + 1;
+        if (attempts >= 5) {
+          set({
+            unlockAttempts: 0,
+            lockedUntil: Date.now() + 1000 * 60 * 5,
+          });
+          return { attempts: 5, locked: true };
+        }
+        set({ unlockAttempts: attempts });
+        return { attempts, locked: false };
+      },
+
+      resetUnlockAttempts: () => set({ unlockAttempts: 0, lockedUntil: null }),
+
+      setLockedUntil: (ts) => set({ lockedUntil: ts }),
+
+      setBearMood: (m) => set({ bearMood: m }),
+
+      patBear: () => {
+        set((s) => ({
+          bearPats: s.bearPats + 1,
+          bearMood: "love",
+          gardenCoins: s.gardenCoins + 1,
+        }));
+        setTimeout(() => set({ bearMood: "happy" }), 1400);
+      },
+
+      setBearAccessory: (a) => set({ bearAccessory: a }),
+
+      addWater: (cups = 1) =>
+        set((s) => {
+          const today = todayStr();
+          if (s.waterDate !== today) {
+            return { waterDate: today, waterCups: Math.min(cups, s.waterGoal) };
+          }
+          return {
+            waterCups: Math.min(s.waterCups + cups, s.waterGoal + 4),
+            bearMood: "excited",
+          };
+        }),
+
+      resetWaterIfNewDay: () =>
+        set((s) => (s.waterDate !== todayStr() ? { waterDate: todayStr(), waterCups: 0 } : s)),
+
+      addPeriodLog: (date, note) =>
+        set((s) => {
+          if (s.periodLogs.some((p) => p.date === date)) return s;
+          return {
+            periodLogs: [...s.periodLogs, { id: `p-${Date.now()}`, date, note }].sort((a, b) =>
+              a.date < b.date ? 1 : -1,
+            ),
+          };
+        }),
+
+      removePeriodLog: (id) =>
+        set((s) => ({ periodLogs: s.periodLogs.filter((p) => p.id !== id) })),
+
+      addPlant: (type, name) =>
+        set((s) => {
+          if (s.gardenCoins < 5) return s;
+          return {
+            gardenCoins: s.gardenCoins - 5,
+            plants: [
+              ...s.plants,
+              {
+                id: `plant-${Date.now()}`,
+                type,
+                name: name || "Little one",
+                growth: 0,
+                lastWatered: 0,
+                thirsty: true,
+              },
+            ],
+          };
+        }),
+
+      waterPlant: (id) =>
+        set((s) => ({
+          plants: s.plants.map((p) =>
+            p.id === id
+              ? {
+                  ...p,
+                  lastWatered: Date.now(),
+                  thirsty: false,
+                  growth: Math.min(4, p.growth + 1),
+                }
+              : p,
+          ),
+          gardenCoins: s.gardenCoins + 2,
+        })),
+
+      removePlant: (id) => set((s) => ({ plants: s.plants.filter((p) => p.id !== id) })),
+
+      earnCoins: (n) => set((s) => ({ gardenCoins: s.gardenCoins + n })),
+
+      markMessageRead: (date) =>
+        set((s) => (s.readMessages.includes(date) ? s : { readMessages: [...s.readMessages, date] })),
+
+      toggleFavorite: (id) =>
+        set((s) => ({
+          favorites: s.favorites.some((f) => f.id === id)
+            ? s.favorites.filter((f) => f.id !== id)
+            : [...s.favorites, { id, ts: Date.now() }],
+        })),
+
+      unlockAdmin: () => set({ adminUnlocked: true }),
+
+      registerAdminTap: () => {
+        const now = Date.now();
+        const { adminTapCount, adminTapResetAt } = get();
+        if (adminTapResetAt && now - adminTapResetAt > 2000) {
+          set({ adminTapCount: 1, adminTapResetAt: now });
+          return false;
+        }
+        const next = adminTapCount + 1;
+        if (next >= 7) {
+          set({ adminTapCount: 0, adminTapResetAt: null });
+          return true;
+        }
+        set({ adminTapCount: next, adminTapResetAt: now });
+        return false;
+      },
+
+      resetAll: () =>
+        set({
+          bearName: null,
+          onboardingComplete: false,
+          unlocked: false,
+          unlockAttempts: 0,
+          lockedUntil: null,
+          bearMood: "happy",
+          bearPats: 0,
+          waterCups: 0,
+          waterDate: todayStr(),
+          periodLogs: [],
+          plants: [],
+          gardenCoins: 12,
+          readMessages: [],
+          favorites: [],
+          adminUnlocked: false,
+          adminTapCount: 0,
+          adminTapResetAt: null,
+        }),
+    }),
+    {
+      name: "kidify-store",
+      version: 1,
+      // admin access is session-only — never persisted, so a refresh always
+      // re-locks the admin panel (more secure, avoids auto-opening)
+      partialize: (s) => {
+        const {
+          adminUnlocked: _u,
+          adminTapCount: _c,
+          adminTapResetAt: _r,
+          ...rest
+        } = s;
+        return rest;
+      },
+    },
+  ),
+);
+
+export { PLANT_TYPES };
+
+/**
+ * Returns true once the persisted store has rehydrated from localStorage on the
+ * client. Uses useSyncExternalStore so SSR and the first client render agree
+ * (both false), avoiding hydration mismatches.
+ */
+export function useHydrated(): boolean {
+  return useSyncExternalStore(
+    (cb) => {
+      const unsubFinish = useKidify.persist.onFinishHydration(cb);
+      return () => unsubFinish();
+    },
+    () => useKidify.persist.hasHydrated(),
+    () => false,
+  );
+}
