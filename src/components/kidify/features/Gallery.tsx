@@ -38,10 +38,15 @@ export function Gallery() {
       <div className="grid grid-cols-2 gap-3">
         {images.map((img, i) => {
           const fav = isFav(img.id);
+          const isFeatured = i === 0;
           return (
             <motion.div
               key={img.id}
-              className="group relative aspect-[4/5] cursor-pointer overflow-hidden rounded-3xl shadow-soft"
+              className={cn(
+                "group relative cursor-pointer overflow-hidden rounded-3xl shadow-soft",
+                isFeatured && "col-span-2 aspect-[16/10]",
+                !isFeatured && "aspect-[4/5]",
+              )}
               onClick={() => setActive(i)}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -55,11 +60,21 @@ export function Gallery() {
               <img
                 src={img.url}
                 alt={img.caption}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-rose-900/60 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-rose-900/70 via-rose-900/10 to-transparent" />
+              {isFeatured && (
+                <div className="absolute left-3 top-3">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/80 px-2.5 py-1 text-[9px] font-bold uppercase text-white backdrop-blur">
+                    ✨ featured
+                  </span>
+                </div>
+              )}
               <div className="absolute bottom-0 left-0 right-0 p-3 text-left">
-                <p className="text-[11px] font-semibold text-white/90 line-clamp-2">{img.caption}</p>
+                <p className={cn(
+                  "font-semibold text-white/90 line-clamp-2",
+                  isFeatured ? "text-sm" : "text-[11px]",
+                )}>{img.caption}</p>
                 <p className="mt-0.5 text-[9px] uppercase tracking-wide text-white/60">
                   {new Date(img.date).toLocaleDateString(undefined, { month: "short", year: "numeric" })}
                 </p>
@@ -69,7 +84,7 @@ export function Gallery() {
                   e.stopPropagation();
                   toggleFavorite(img.id);
                 }}
-                className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/30 backdrop-blur"
+                className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/30 backdrop-blur transition-all hover:bg-white/50"
                 aria-label="favorite"
               >
                 <Heart

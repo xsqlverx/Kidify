@@ -280,3 +280,66 @@ Stage Summary:
 - Modified files: `store.ts` (mood state/actions), `data-access.ts` (getMessagesForRange), `layout.tsx` (manifest + Sonner Toaster), `sonner.tsx` (pink glass theming), `globals.css` (6 new animations), `decor.tsx` (PinkCard hover), `Home.tsx` (integrated MoodDiary + LoveLetterArchive + enhanced greeting/stats), `AppShell.tsx` (better page transitions + nav gradient), `ThankYou.tsx` (inner glow ring + decorative underlines), `PeriodTracker.tsx` (cycle progress bar).
 - Bug fixed: Wrong Toaster component was being used (shadcn instead of Sonner), causing all toast notifications to be invisible.
 - Next round priorities: Service worker for offline/PWA, backend wiring (MongoDB+Cloudinary+Vercel), ambient sound toggle, bear mood per-tab animations, wish-granting animations, mood diary insights/stats.
+
+---
+
+Task ID: round-7
+Agent: main (webDevReview cron)
+Task: QA the app, fix PWA icon 404, add new features (Self-Care Checklist, Our Story Timeline, Bear Speech Reactions), polish gallery styling, and verify.
+
+Work Log:
+- Re-read worklog.md (rounds 1-6) to understand current state: all previous features done (onboarding, bear, 5 tabs, wardrobe, hug, days counter, confetti, reasons, stickers, memory jar, breathing bubble, affirmation, star wish, mood diary, love letter archive, PWA manifest, pink glass toasts).
+- QA'd the full app fresh with agent-browser (iPhone 14): onboarding → unlock → all 5 tabs → modals. No runtime errors, no console warnings. App is stable.
+- Found bug: PWA manifest referenced `/kidify/icon-192.png` and `/kidify/icon-512.png` which don't exist (404s in dev.log). Fixed by updating `manifest.json` to use the existing `/kidify/bear-hero.png` for all icon sizes (any + maskable purposes).
+- Extended the Zustand store (`src/lib/store.ts`) with new state:
+  - `SelfCareTask` type: 8 daily care tasks (water, sleep, eat, move, freshair, shower, skincare, medicine).
+  - `StoryMilestone` type: relationship milestones (id/emoji/title/date/note/ts).
+  - State fields: `careDate`, `careDoneToday`, `storyMilestones` (seeded with 2 demo milestones).
+  - Actions: `toggleCareTask`, `resetCareIfNewDay`, `addMilestone`, `removeMilestone`.
+  - Wired all new fields into `resetAll`.
+- Built `src/components/kidify/features/SelfCareChecklist.tsx`:
+  - A comprehensive daily self-care card with 8 tasks in a 2-column grid: 💧 water, 🛌 rest, 🍓 eat, 🚶‍♀️ move, 🌬️ fresh air, 🚿 shower, 🧴 skincare, 💊 medicine.
+  - Each task has emoji, label, and a gentle hint ("even one sip counts", "warm water fixes a surprising amount").
+  - Progress bar with gradient fill (emerald → rose → pink), percentage display.
+  - Toggle on/off with check animation and toast feedback per task.
+  - All-done celebration: animated 🌿 with "you took care of you today" message.
+  - Auto-resets on new day.
+- Built `src/components/kidify/features/OurStory.tsx`:
+  - A relationship timeline card showing story milestones in chronological order.
+  - Each milestone has an emoji dot, date, title, and optional note, connected by a vertical gradient line.
+  - "Add" button opens a portaled modal with: 12-emoji picker grid, title input, date picker, optional note textarea.
+  - Milestones sort by date (newest first), show up to 4 with "+N more chapters" overflow.
+  - Hover-to-reveal delete button per milestone.
+  - Seeded with 2 demo milestones ("the bear was born", "rosie bloomed") so the timeline doesn't look empty on first load.
+  - Toast on add: "added to our story. 🤍".
+- Built `src/components/kidify/features/BearSpeech.tsx`:
+  - A speech bubble that appears above the floating bear, reacting contextually to her actions.
+  - Uses Zustand's `subscribe()` API (not effects) to listen for store changes — avoids the `react-hooks/set-state-in-effect` lint rule.
+  - 7 reaction categories with 3-5 messages each: idle, afterPat, afterHug, afterWater, afterRead, afterBreath, afterMood.
+  - Triggers on: bear pat, hug sent, water cup filled, love note read, breathing session completed, mood logged.
+  - Idle messages every ~28s (35% chance) for ambient companionship.
+  - Speech bubble has a tail pointer, spring animation, auto-hides after 3.5s.
+- Enhanced Gallery (`Gallery.tsx`):
+  - First image is now "featured" — spans full width (col-span-2) with a 16:10 aspect ratio.
+  - Featured image has a "✨ featured" badge in the top-left corner.
+  - Featured image caption uses larger text (text-sm vs text-[11px]).
+  - Hover zoom duration increased to 700ms for smoother feel.
+  - Gradient overlay enhanced (from-rose-900/70 via-rose-900/10 for deeper contrast).
+  - Favorite button hover effect added (bg-white/50 on hover).
+- Integrated SelfCareChecklist and OurStory into Home (after MoodDiary, before bear pats footer) with staggered entrance animations.
+- Integrated BearSpeech into AppShell (renders above the floating bear, below the admin panel).
+
+Stage Summary:
+- `bun run lint` — clean (0 errors, 0 warnings).
+- Dev server compiles and serves 200s; no runtime errors, no console warnings.
+- PWA manifest 404 FIXED — now uses existing bear-hero.png for all icon sizes.
+- Agent-browser verification (all PASSED):
+  - Onboarding: full flow name → letter → unlock (code 2707) → app. ✅
+  - Self-Care Checklist: "did you…" heading renders, 8 task buttons visible, clicking skincare toggles it on (checkmark + emerald styling), toast "🧴 skincare done" appears, progress bar updates. ✅
+  - Our Story: "the story of us" heading renders, seeded milestones visible, "add" button opens modal with emoji picker + title/date/note inputs, filling "the first time you called" + saving adds it to the timeline, toast "added to our story. 🤍" appears. ✅
+  - Bear Speech: patting the floating bear triggers a speech bubble with contextual message (verified via DOM text content includes reaction phrases like "hehe"/"i love you"/"got it"). ✅
+  - Gallery: featured image badge "✨ featured" present on first image, full-width layout for featured, 2-col grid for rest. ✅
+  - All 5 tabs cycle cleanly with no errors/warnings. ✅
+- New files: `SelfCareChecklist.tsx`, `OurStory.tsx`, `BearSpeech.tsx`.
+- Modified files: `store.ts` (SelfCareTask + StoryMilestone types, state, actions, resetAll), `manifest.json` (fixed icon 404), `Home.tsx` (integrated SelfCareChecklist + OurStory), `AppShell.tsx` (added BearSpeech), `Gallery.tsx` (featured image layout).
+- Next round priorities: Service worker for offline PWA, backend wiring (MongoDB+Cloudinary+Vercel), ambient sound toggle, mood diary insights/stats, wish-granting animations, admin-editable story milestones.

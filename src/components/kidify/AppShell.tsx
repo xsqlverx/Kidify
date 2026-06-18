@@ -11,6 +11,7 @@ import { Gallery } from "./features/Gallery";
 import { Garden } from "./features/Garden";
 import { ThankYou } from "./features/ThankYou";
 import { AdminPanel } from "./features/Admin";
+import { BearSpeech } from "./features/BearSpeech";
 import { Home, Droplet, ImageIcon, Flower2, Heart, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -152,6 +153,9 @@ export function AppShell() {
           })}
         </div>
       </nav>
+
+      {/* bear speech bubble — reacts to her actions */}
+      <BearSpeech />
 
       {/* admin panel */}
       <AnimatePresence>

@@ -16,6 +16,8 @@ import { AffirmationCard } from "./Affirmation";
 import { StarWish } from "./StarWish";
 import { MoodDiary } from "./MoodDiary";
 import { LoveLetterArchive } from "./LoveLetterArchive";
+import { SelfCareChecklist } from "./SelfCareChecklist";
+import { OurStory } from "./OurStory";
 import { useKidify } from "@/lib/store";
 import { useDailyMessage } from "@/lib/data-access";
 import type { DailyMessage } from "@/lib/mock-data";
@@ -401,12 +403,30 @@ export function HomeFeature() {
         <MoodDiary />
       </motion.div>
 
+      {/* daily self-care checklist */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.32 }}
+      >
+        <SelfCareChecklist />
+      </motion.div>
+
+      {/* our story timeline */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.34 }}
+      >
+        <OurStory />
+      </motion.div>
+
       {/* bear pats footer */}
       <motion.div
         className="flex items-center justify-center gap-2 pt-1 text-xs text-rose-400/70"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.32 }}
+        transition={{ delay: 0.36 }}
       >
         <span>🧸 you've given {bearName} {bearPats} {bearPats === 1 ? "pat" : "pats"}. it's keeping count.</span>
       </motion.div>

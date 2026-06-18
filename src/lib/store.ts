@@ -46,6 +46,25 @@ export type MoodEntry = {
   ts: number;
 };
 
+export type SelfCareTask =
+  | "water"
+  | "sleep"
+  | "eat"
+  | "move"
+  | "freshair"
+  | "skincare"
+  | "medicine"
+  | "shower";
+
+export type StoryMilestone = {
+  id: string;
+  emoji: string;
+  title: string;
+  date: string; // YYYY-MM-DD
+  note?: string;
+  ts: number;
+};
+
 export type BearMood = "happy" | "love" | "sleepy" | "excited" | "shy";
 
 export type StickerTask =
@@ -111,6 +130,13 @@ type KidifyState = {
   moodToday: MoodEntry | null;
   moodHistory: MoodEntry[];
 
+  // Daily self-care checklist
+  careDate: string; // YYYY-MM-DD the care tasks belong to
+  careDoneToday: SelfCareTask[];
+
+  // Our Story — relationship milestones
+  storyMilestones: StoryMilestone[];
+
   // Breathing — last time she did a breathing exercise
   lastBreathAt: number | null;
   breathSessions: number;
@@ -173,6 +199,12 @@ type KidifyState = {
 
   logMood: (emoji: string, label: string, note?: string) => void;
 
+  toggleCareTask: (task: SelfCareTask) => void;
+  resetCareIfNewDay: () => void;
+
+  addMilestone: (emoji: string, title: string, date: string, note?: string) => void;
+  removeMilestone: (id: string) => void;
+
   logBreathSession: () => void;
 
   revealReason: (i: number) => void;
@@ -232,6 +264,27 @@ export const useKidify = create<KidifyState>()(
       wishes: [],
       moodToday: null,
       moodHistory: [],
+      careDate: todayStr(),
+      careDoneToday: [],
+      storyMilestones: [
+        // a couple of seeded milestones so the timeline doesn't look empty
+        {
+          id: "seed-story-1",
+          emoji: "🧸",
+          title: "the bear was born",
+          date: "2024-09-01",
+          note: "you gave him a name before i even finished drawing him.",
+          ts: Date.now() - 86400000 * 30,
+        },
+        {
+          id: "seed-story-2",
+          emoji: "🌷",
+          title: "rosie bloomed",
+          date: "2024-11-03",
+          note: "we watered her together, on a call, in silence.",
+          ts: Date.now() - 86400000 * 10,
+        },
+      ],
       lastBreathAt: null,
       breathSessions: 0,
       revealedReasons: [],
@@ -446,6 +499,45 @@ export const useKidify = create<KidifyState>()(
         });
       },
 
+      toggleCareTask: (task) =>
+        set((s) => {
+          const today = todayStr();
+          const done = s.careDate === today ? s.careDoneToday : [];
+          return {
+            careDate: today,
+            careDoneToday: done.includes(task)
+              ? done.filter((t) => t !== task)
+              : [...done, task],
+          };
+        }),
+
+      resetCareIfNewDay: () =>
+        set((s) =>
+          s.careDate !== todayStr()
+            ? { careDate: todayStr(), careDoneToday: [] }
+            : s,
+        ),
+
+      addMilestone: (emoji, title, date, note) =>
+        set((s) => ({
+          storyMilestones: [
+            ...s.storyMilestones,
+            {
+              id: `story-${Date.now()}`,
+              emoji: emoji || "✨",
+              title: title.trim() || "a little moment",
+              date,
+              note: note?.trim() || undefined,
+              ts: Date.now(),
+            },
+          ].sort((a, b) => (a.date < b.date ? 1 : -1)),
+        })),
+
+      removeMilestone: (id) =>
+        set((s) => ({
+          storyMilestones: s.storyMilestones.filter((m) => m.id !== id),
+        })),
+
       logBreathSession: () =>
         set((s) => ({ lastBreathAt: Date.now(), breathSessions: s.breathSessions + 1 })),
 
@@ -506,6 +598,9 @@ export const useKidify = create<KidifyState>()(
           wishes: [],
           moodToday: null,
           moodHistory: [],
+          careDate: todayStr(),
+          careDoneToday: [],
+          storyMilestones: [],
           lastBreathAt: null,
           breathSessions: 0,
           revealedReasons: [],
