@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Bear } from "./Bear";
 import { FloatingDecor, PinkButton, Pill } from "./ui/decor";
 import { useKidify } from "@/lib/store";
@@ -10,11 +10,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { Progress } from "@/components/ui/progress";
 import { Sparkles, Lock, AlertTriangle } from "lucide-react";
 
-// Prototype unlock code. In production this is verified server-side against
-// process.env.UNLOCK_CODE. Change this to whatever you and Shifa decide.
-const DEMO_UNLOCK_CODE = "2707";
-
-type Step = "welcome" | "letter" | "unlock";
+type Step = "welcome" | "letter" | "unlock" | "setup-code";
 
 const LETTER_TEXT = `my love,
 
@@ -38,18 +34,26 @@ export function Onboarding() {
   const resetUnlockAttempts = useKidify((s) => s.resetUnlockAttempts);
   const unlockAttempts = useKidify((s) => s.unlockAttempts);
   const lockedUntil = useKidify((s) => s.lockedUntil);
-  const setLockedUntil = useKidify((s) => s.setLockedUntil);
 
   const [step, setStep] = useState<Step>("welcome");
   const [nameInput, setNameInput] = useState("");
   const [letterOpen, setLetterOpen] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
   const [code, setCode] = useState("");
+  const [setupCode, setSetupCode] = useState("");
+  const [setupConfirm, setSetupConfirm] = useState("");
   const [codeError, setCodeError] = useState(false);
   const [shake, setShake] = useState(false);
   const [now, setNow] = useState(Date.now());
+  const [codeExists, setCodeExists] = useState<boolean | null>(null);
 
-  // loading bar runs while the letter is open
+  useEffect(() => {
+    fetch("/api/unlock/status")
+      .then((r) => r.json())
+      .then((d) => setCodeExists(d.exists))
+      .catch(() => setCodeExists(false))
+  }, [])
+
   useEffect(() => {
     if (step !== "letter" || !letterOpen) return;
     setLoadProgress(0);
@@ -65,39 +69,52 @@ export function Onboarding() {
     return () => clearInterval(t);
   }, [step, letterOpen]);
 
-  // tick for lock countdown
   useEffect(() => {
     if (!lockedUntil) return;
     const t = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(t);
   }, [lockedUntil]);
 
-  // when code fully entered, verify
   useEffect(() => {
     if (code.length !== 4) return;
     if (lockedUntil && now < lockedUntil) return;
-    const t = setTimeout(() => {
-      if (code === DEMO_UNLOCK_CODE) {
-        resetUnlockAttempts();
-        setUnlocked(true);
-        completeOnboarding();
-      } else {
-        const { locked } = registerWrongAttempt();
-        setCodeError(true);
-        setShake(true);
-        setTimeout(() => setShake(false), 500);
-        setTimeout(() => {
-          setCode("");
-          setCodeError(false);
-        }, 700);
-        if (locked) {
-          // failsafe triggered — in prod this fires the admin webhook
-          setNow(Date.now());
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/unlock/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code }),
+        })
+        const data = await res.json()
+        if (data.success) {
+          resetUnlockAttempts()
+          setUnlocked(true)
+          completeOnboarding()
+        } else {
+          const { locked } = registerWrongAttempt()
+          if (data.locked) {
+            console.log("[FAILSAFE] 5 wrong attempts logged server-side")
+          }
+          setCodeError(true)
+          setShake(true)
+          setTimeout(() => setShake(false), 500)
+          setTimeout(() => {
+            setCode("")
+            setCodeError(false)
+          }, 700)
+          if (locked) {
+            setNow(Date.now())
+          }
         }
+      } catch {
+        setCodeError(true)
+        setShake(true)
+        setTimeout(() => setShake(false), 500)
+        setTimeout(() => { setCode(""); setCodeError(false) }, 700)
       }
-    }, 250);
-    return () => clearTimeout(t);
-  }, [code]);
+    }, 250)
+    return () => clearTimeout(t)
+  }, [code])
 
   const handleNameSubmit = () => {
     const n = nameInput.trim() || "Mochi";
@@ -107,8 +124,28 @@ export function Onboarding() {
 
   const handleCloseLetter = () => {
     setLetterOpen(false);
-    setTimeout(() => setStep("unlock"), 500);
+    setTimeout(() => {
+      setStep(codeExists ? "unlock" : "setup-code")
+    }, 500);
   };
+
+  const handleSetupCode = async () => {
+    if (setupCode.length !== 4 || setupCode !== setupConfirm) return
+    try {
+      const res = await fetch("/api/unlock/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: setupCode }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setCodeExists(true)
+        setStep("unlock")
+        setSetupCode("")
+        setSetupConfirm("")
+      }
+    } catch {}
+  }
 
   const lockedRemaining = lockedUntil ? Math.max(0, Math.ceil((lockedUntil - now) / 1000)) : 0;
   const isLocked = lockedRemaining > 0;
@@ -172,7 +209,7 @@ export function Onboarding() {
               </div>
 
               <p className="mt-6 text-xs text-rose-400/60">
-                (psst — for the demo, the unlock code is <span className="font-bold">{DEMO_UNLOCK_CODE}</span>. you'll change it later.)
+                she's waiting for you on the other side 💗
               </p>
             </motion.div>
           )}
@@ -388,6 +425,81 @@ export function Onboarding() {
                   </p>
                 )}
               </AnimatePresence>
+            </motion.div>
+          )}
+
+          {/* STEP 4: SETUP CODE (first boot) */}
+          {step === "setup-code" && (
+            <motion.div
+              key="setup-code"
+              className="flex w-full max-w-md flex-col items-center text-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <motion.div
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Bear size={110} mood="excited" />
+              </motion.div>
+
+              <h2 className="mt-4 font-display text-2xl font-bold text-gradient-rose">
+                choose your code, {bearName || "love"}
+              </h2>
+              <p className="mt-2 text-sm text-rose-500/80">
+                a little 4-digit key that only you know.
+                <br />you'll use it every time you come back.
+              </p>
+
+              <div className="mt-6 w-full max-w-xs space-y-4">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-rose-400">create a code</p>
+                  <InputOTP
+                    maxLength={4}
+                    value={setupCode}
+                    onChange={setSetupCode}
+                  >
+                    <InputOTPGroup className="gap-2">
+                      <InputOTPSlot index={0} className="h-14 w-12 rounded-2xl border-2 border-rose-200 bg-white/80 text-2xl font-bold text-rose-600 data-[active]:border-rose-400" />
+                      <InputOTPSlot index={1} className="h-14 w-12 rounded-2xl border-2 border-rose-200 bg-white/80 text-2xl font-bold text-rose-600 data-[active]:border-rose-400" />
+                      <InputOTPSlot index={2} className="h-14 w-12 rounded-2xl border-2 border-rose-200 bg-white/80 text-2xl font-bold text-rose-600 data-[active]:border-rose-400" />
+                      <InputOTPSlot index={3} className="h-14 w-12 rounded-2xl border-2 border-rose-200 bg-white/80 text-2xl font-bold text-rose-600 data-[active]:border-rose-400" />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-rose-400">confirm it</p>
+                  <InputOTP
+                    maxLength={4}
+                    value={setupConfirm}
+                    onChange={setSetupConfirm}
+                  >
+                    <InputOTPGroup className="gap-2">
+                      <InputOTPSlot index={0} className="h-14 w-12 rounded-2xl border-2 border-rose-200 bg-white/80 text-2xl font-bold text-rose-600 data-[active]:border-rose-400" />
+                      <InputOTPSlot index={1} className="h-14 w-12 rounded-2xl border-2 border-rose-200 bg-white/80 text-2xl font-bold text-rose-600 data-[active]:border-rose-400" />
+                      <InputOTPSlot index={2} className="h-14 w-12 rounded-2xl border-2 border-rose-200 bg-white/80 text-2xl font-bold text-rose-600 data-[active]:border-rose-400" />
+                      <InputOTPSlot index={3} className="h-14 w-12 rounded-2xl border-2 border-rose-200 bg-white/80 text-2xl font-bold text-rose-600 data-[active]:border-rose-400" />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+
+                {setupCode.length === 4 && setupConfirm.length === 4 && setupCode !== setupConfirm && (
+                  <p className="text-sm text-rose-500">codes don't match — try again</p>
+                )}
+
+                <PinkButton
+                  onClick={handleSetupCode}
+                  disabled={setupCode.length !== 4 || setupCode !== setupConfirm}
+                  className="w-full"
+                  heart
+                  size="lg"
+                >
+                  lock it in
+                </PinkButton>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

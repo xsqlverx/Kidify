@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kidify Admin</title>
+<style>
+  :root {
+    --pink: #F472B6;
+    --rose: #E8527B;
+    --rose-light: #FFF0F5;
+    --bg: #FFF9F7;
+    --text: #3B2A22;
+    --text-muted: #A0786F;
+    --border: #FDE2E4;
+    --radius: 16px;
+    --shadow: 0 2px 12px rgba(200, 100, 120, 0.1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 20px;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 20px; color: var(--rose); margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+  .login-box {
+    background: white; border-radius: var(--radius); padding: 32px;
+    box-shadow: var(--shadow); text-align: center; margin-top: 40px;
+  }
+  .login-box h2 { font-size: 18px; margin-bottom: 16px; }
+  .login-box input {
+    width: 100%; padding: 12px 16px; border: 2px solid var(--border);
+    border-radius: 12px; font-size: 14px; margin-bottom: 12px;
+    outline: none; text-align: center;
+  }
+  .login-box input:focus { border-color: var(--pink); }
+  .tabs { display: flex; gap: 4px; background: var(--rose-light); padding: 4px; border-radius: 12px; margin-bottom: 20px; }
+  .tab { flex:1; padding: 8px; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; background: transparent; color: var(--text-muted); }
+  .tab.active { background: white; color: var(--rose); box-shadow: var(--shadow); }
+  .card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 16px; }
+  .card h3 { font-size: 15px; margin-bottom: 12px; }
+  label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; margin-top: 12px; }
+  label:first-child { margin-top: 0; }
+  input, textarea, select {
+    width: 100%; padding: 10px 14px; border: 2px solid var(--border);
+    border-radius: 10px; font-size: 13px; outline: none;
+    font-family: inherit; resize: vertical;
+  }
+  input:focus, textarea:focus { border-color: var(--pink); }
+  textarea { min-height: 80px; }
+  .row { display: flex; gap: 8px; align-items: end; }
+  .row > * { flex: 1; }
+  button {
+    background: var(--pink); color: white; border: none;
+    padding: 10px 20px; border-radius: 12px; font-size: 13px;
+    font-weight: 600; cursor: pointer; transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+  button:hover { opacity: 0.85; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.danger { background: #F87171; }
+  button.secondary { background: #E5E7EB; color: var(--text); }
+  .item-list { margin-top: 12px; }
+  .item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 10px; margin-bottom: 6px; font-size: 13px;
+  }
+  .item .info { flex: 1; min-width: 0; }
+  .item .info .title { font-weight: 600; }
+  .item .info .meta { font-size: 11px; color: var(--text-muted); }
+  .item button { padding: 6px 12px; font-size: 12px; }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--text); color: white; padding: 10px 24px;
+    border-radius: 12px; font-size: 13px; font-weight: 500;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 999;
+    animation: fadeInUp 0.3s ease;
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  .hidden { display: none; }
+  .empty { text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; background: var(--rose-light); color: var(--rose); }
+  .error-msg { color: #F87171; font-size: 12px; margin-top: 4px; }
+  .success-msg { color: #34D399; font-size: 12px; margin-top: 4px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+</style>
+</head>
+<body>
+
+<div id="login" class="login-box">
+  <h2>🧸 Kidify Admin</h2>
+  <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">manage your little world from anywhere</p>
+
+  <label style="text-align:left;font-size:12px;color:var(--text-muted);margin-top:0">App URL (where the app is deployed)</label>
+  <input id="api-input" type="url" placeholder="https://kidify.vercel.app" style="margin-bottom:4px">
+  <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px;text-align:left">the Vercel link you'll send her</p>
+
+  <hr class="divider">
+
+  <input id="secret-input" type="password" placeholder="paste your admin secret" autofocus>
+  <button onclick="login()" style="width:100%">unlock admin</button>
+  <p id="login-error" class="error-msg hidden" style="margin-top:12px"></p>
+</div>
+
+<div id="app" class="hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+    <h1>🧸 Kidify Admin</h1>
+    <div style="display:flex;gap:6px">
+      <span id="api-badge" class="badge" style="font-size:10px;padding:4px 8px"></span>
+      <button class="secondary" onclick="logout()" style="font-size:12px;padding:6px 14px">lock</button>
+    </div>
+  </div>
+  <p class="subtitle">manage love notes, gallery, and thank you content</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('messages',this)">Messages</button>
+    <button class="tab" onclick="switchTab('gallery',this)">Gallery</button>
+    <button class="tab" onclick="switchTab('thanks',this)">Thank You</button>
+  </div>
+
+  <div id="tab-messages" class="tab-content">
+    <div class="card">
+      <h3>✍️ Post a Love Note</h3>
+      <label>Date (YYYY-MM-DD — leave blank for today)</label>
+      <input id="msg-date" type="date">
+      <label>Title</label>
+      <input id="msg-title" placeholder="e.g. good morning, my love">
+      <label>Body</label>
+      <textarea id="msg-body" placeholder="the full message..."></textarea>
+      <label>Signature</label>
+      <input id="msg-signature" placeholder="— always, me">
+      <label>Sticker (emoji)</label>
+      <input id="msg-sticker" placeholder="💌" maxlength="2" style="width:60px">
+      <button onclick="postMessage()" style="margin-top:12px;width:100%">Post Love Note</button>
+      <p id="msg-result" class="hidden" style="margin-top:8px"></p>
+    </div>
+    <div class="card">
+      <h3>📬 Posted Messages</h3>
+      <div id="messages-list" class="item-list"><p class="empty">loading...</p></div>
+    </div>
+  </div>
+
+  <div id="tab-gallery" class="tab-content hidden">
+    <div class="card">
+      <h3>📷 Add Gallery Image</h3>
+      <label>Image URL</label>
+      <input id="gallery-url" placeholder="https://res.cloudinary.com/... or any image URL">
+      <label>Caption</label>
+      <input id="gallery-caption" placeholder="the day the sky matched your cheeks">
+      <label>Date</label>
+      <input id="gallery-date" type="date">
+      <button onclick="addGalleryImage()" style="margin-top:12px;width:100%">Add to Gallery</button>
+      <p id="gallery-result" class="hidden" style="margin-top:8px"></p>
+    </div>
+    <div class="card">
+      <h3>🖼️ Gallery Images</h3>
+      <div id="gallery-list" class="item-list"><p class="empty">loading...</p></div>
+    </div>
+  </div>
+
+  <div id="tab-thanks" class="tab-content hidden">
+    <div class="card">
+      <h3>🤍 Edit Thank You Page</h3>
+      <label>Intro</label>
+      <textarea id="thanks-intro" style="min-height:60px"></textarea>
+      <p style="font-size:11px;color:var(--text-muted);margin:8px 0">Sections (one per line in format: heading||body)</p>
+      <textarea id="thanks-sections" style="min-height:120px" placeholder="for the way you stay||Everyone else gets to see the version of me that performs...&#10;for holding me up||There were days i was certain i would sink..."></textarea>
+      <button onclick="saveThankYou()" style="margin-top:12px;width:100%">Save Thank You</button>
+      <button onclick="resetThankYou()" class="secondary" style="margin-top:8px;width:100%">Reset to Default</button>
+      <p id="thanks-result" class="hidden" style="margin-top:8px"></p>
+    </div>
+  </div>
+</div>
+
+<p style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:40px">made with love 🤍</p>
+
+<script>
+const params = new URLSearchParams(window.location.search)
+let API = params.get('api') || localStorage.getItem('admin_api') || ''
+let secret = sessionStorage.getItem('admin_secret') || ''
+
+function toast(msg) {
+  const el = document.createElement('div')
+  el.className = 'toast'
+  el.textContent = msg
+  document.body.appendChild(el)
+  setTimeout(() => el.remove(), 2500)
+}
+
+function login() {
+  const apiInput = document.getElementById('api-input')
+  const secretInput = document.getElementById('secret-input')
+  const err = document.getElementById('login-error')
+
+  let apiUrl = apiInput.value.trim()
+  if (!apiUrl) { err.textContent = 'enter the app URL first (your Vercel link)'; err.classList.remove('hidden'); return }
+  apiUrl = apiUrl.replace(/\/+$/, '')
+  if (!secretInput.value.trim()) { err.textContent = 'enter your admin secret'; err.classList.remove('hidden'); return }
+
+  API = apiUrl
+  secret = secretInput.value.trim()
+  localStorage.setItem('admin_api', API)
+  sessionStorage.setItem('admin_secret', secret)
+
+  document.getElementById('login').classList.add('hidden')
+  document.getElementById('app').classList.remove('hidden')
+  document.getElementById('api-badge').textContent = API.replace(/^https?:\/\//, '')
+  loadAll()
+}
+
+function logout() {
+  secret = ''
+  sessionStorage.removeItem('admin_secret')
+  document.getElementById('login').classList.remove('hidden')
+  document.getElementById('app').classList.add('hidden')
+  document.getElementById('secret-input').value = ''
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+  btn.classList.add('active')
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'))
+  document.getElementById('tab-' + name).classList.remove('hidden')
+}
+
+async function api(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json', ...options.headers }
+  if (secret) headers['Authorization'] = 'Bearer ' + secret
+  try {
+    const res = await fetch(API + path, { ...options, headers, mode: 'cors' })
+    if (res.status === 401) { toast('unauthorized — check your secret'); return null }
+    return res.json()
+  } catch {
+    toast('cannot reach ' + API + ' — is it deployed and running?')
+    return null
+  }
+}
+
+async function loadAll() {
+  loadMessages()
+  loadGallery()
+  loadThankYou()
+}
+
+async function loadMessages() {
+  const el = document.getElementById('messages-list')
+  try {
+    const res = await fetch(API + '/api/messages/range?from=2000-01-01&to=2100-01-01', { mode: 'cors' })
+    const data = await res.json()
+    if (Array.isArray(data) && data.length > 0) {
+      el.innerHTML = data.sort((a,b) => a.date < b.date ? 1 : -1).map(m => `
+        <div class="item">
+          <div class="info">
+            <div class="title">${esc(m.title)}</div>
+            <div class="meta">${m.date} · ${m.sticker || ''}</div>
+          </div>
+          <button class="danger" onclick="deleteMessage('${m.date}')">delete</button>
+        </div>
+      `).join('')
+    } else {
+      el.innerHTML = '<p class="empty">no custom messages yet — post one above</p>'
+    }
+  } catch { el.innerHTML = '<p class="empty">could not load messages</p>' }
+}
+
+async function postMessage() {
+  const date = document.getElementById('msg-date').value || new Date().toISOString().slice(0,10)
+  const title = document.getElementById('msg-title').value.trim()
+  const body = document.getElementById('msg-body').value.trim()
+  const sig = document.getElementById('msg-signature').value.trim() || '— always, me'
+  const sticker = document.getElementById('msg-sticker').value.trim() || '💌'
+  const result = document.getElementById('msg-result')
+  if (!title || !body) { result.textContent = 'title and body are required'; result.className = 'error-msg'; result.classList.remove('hidden'); return }
+
+  const data = await api('/api/messages', {
+    method: 'POST', body: JSON.stringify({ date, title, body, signature: sig, sticker })
+  })
+  if (data?.success) {
+    toast('love note posted for ' + date)
+    document.getElementById('msg-title').value = ''
+    document.getElementById('msg-body').value = ''
+    document.getElementById('msg-signature').value = ''
+    document.getElementById('msg-sticker').value = ''
+    result.classList.add('hidden')
+    loadMessages()
+  } else {
+    result.textContent = 'failed to post'; result.className = 'error-msg'; result.classList.remove('hidden')
+  }
+}
+
+async function deleteMessage(date) {
+  if (!confirm('delete message for ' + date + '?')) return
+  await api('/api/messages/' + date, { method: 'DELETE' })
+  toast('deleted')
+  loadMessages()
+}
+
+async function loadGallery() {
+  const el = document.getElementById('gallery-list')
+  try {
+    const res = await fetch(API + '/api/gallery', { mode: 'cors' })
+    const data = await res.json()
+    if (Array.isArray(data) && data.length > 0) {
+      el.innerHTML = data.map(img => `
+        <div class="item">
+          <img src="${esc(img.url)}" style="width:40px;height:40px;object-fit:cover;border-radius:8px" onerror="this.style.display='none'">
+          <div class="info">
+            <div class="title">${esc(img.caption || 'no caption')}</div>
+            <div class="meta">${img.date}</div>
+          </div>
+          <button class="danger" onclick="deleteGalleryImage('${img.id}')">delete</button>
+        </div>
+      `).join('')
+    } else {
+      el.innerHTML = '<p class="empty">no gallery images yet</p>'
+    }
+  } catch { el.innerHTML = '<p class="empty">could not load gallery</p>' }
+}
+
+async function addGalleryImage() {
+  const url = document.getElementById('gallery-url').value.trim()
+  const caption = document.getElementById('gallery-caption').value.trim()
+  const date = document.getElementById('gallery-date').value || new Date().toISOString().slice(0,10)
+  const result = document.getElementById('gallery-result')
+  if (!url) { result.textContent = 'image URL is required'; result.className = 'error-msg'; result.classList.remove('hidden'); return }
+
+  const data = await api('/api/gallery', {
+    method: 'POST', body: JSON.stringify({ url, caption, date })
+  })
+  if (data?.success) {
+    toast('image added to gallery')
+    document.getElementById('gallery-url').value = ''
+    document.getElementById('gallery-caption').value = ''
+    result.classList.add('hidden')
+    loadGallery()
+  } else {
+    result.textContent = 'failed to add image'; result.className = 'error-msg'; result.classList.remove('hidden')
+  }
+}
+
+async function deleteGalleryImage(id) {
+  if (!confirm('remove this image from gallery?')) return
+  await api('/api/gallery/' + id, { method: 'DELETE' })
+  toast('removed')
+  loadGallery()
+}
+
+async function loadThankYou() {
+  try {
+    const res = await fetch(API + '/api/thankyou', { mode: 'cors' })
+    const data = await res.json()
+    if (data && data.intro) {
+      document.getElementById('thanks-intro').value = data.intro
+      if (data.sections) {
+        document.getElementById('thanks-sections').value = data.sections.map(s => s.heading + '||' + s.body).join('\n')
+      }
+    }
+  } catch {}
+}
+
+async function saveThankYou() {
+  const intro = document.getElementById('thanks-intro').value.trim()
+  const sectionsRaw = document.getElementById('thanks-sections').value.trim()
+  const result = document.getElementById('thanks-result')
+  if (!intro) { result.textContent = 'intro is required'; result.className = 'error-msg'; result.classList.remove('hidden'); return }
+
+  const sections = sectionsRaw ? sectionsRaw.split('\n').filter(Boolean).map(line => {
+    const [heading, ...rest] = line.split('||')
+    return { heading: heading.trim(), body: rest.join('||').trim() }
+  }) : []
+
+  const data = await api('/api/thankyou', {
+    method: 'PUT', body: JSON.stringify({ intro, sections })
+  })
+  if (data?.success) {
+    toast('thank you page updated')
+    result.classList.add('hidden')
+  } else {
+    result.textContent = 'failed to save'; result.className = 'error-msg'; result.classList.remove('hidden')
+  }
+}
+
+async function resetThankYou() {
+  if (!confirm('reset thank you to default content?')) return
+  const defaultContent = {
+    intro: "this page exists because 'thank you' was never going to fit in a text message. so i built you a whole room for it. stay as long as you want.",
+    sections: [
+      { heading: "for the way you stay", body: "everyone else gets to see the version of me that performs. you get the one that's tired, and scared, and small — and you don't flinch. you just pull up a chair and sit with me like that's the most natural thing in the world. it isn't, for most people. it is, for you. thank you for the chair." },
+      { heading: "for holding me up", body: "there were days i was certain i would sink. you didn't rescue me with grand gestures. you did it with presence — a message at the right minute, a 'did you eat', a 'i'm here' that meant it. you held the floor under my feet without ever making me feel like i was heavy. that is a kind of love most people spend a lifetime not finding. i found it at 10 km. lucky doesn't begin to cover it." },
+      { heading: "for your softness", body: "the world tries so hard to make you hard and you just... won't. you keep being gentle with stray dogs and old people and me. that takes more courage than anything loud. thank you for refusing to go cold." },
+      { heading: "for choosing me, again", body: "i know it's a choice. every day, it's a choice. and every day you make it like it's easy. i will spend the rest of my life trying to be worthy of how easily you keep choosing me." },
+      { heading: "and one more thing", body: "none of this is a favour. it's not a debt. it's just — i love you, and 'thank you' is the smallest, truest word i have for it. so: thank you. for everything. for staying. for being you. for letting me be yours." },
+    ]
+  }
+  const data = await api('/api/thankyou', {
+    method: 'PUT', body: JSON.stringify(defaultContent)
+  })
+  if (data?.success) {
+    toast('thank you reset to default')
+    loadThankYou()
+  }
+}
+
+function esc(s) {
+  const div = document.createElement('div')
+  div.textContent = s
+  return div.innerHTML
+}
+
+if (API) {
+  document.getElementById('api-input').value = API
+  if (secret) {
+    document.getElementById('login').classList.add('hidden')
+    document.getElementById('app').classList.remove('hidden')
+    document.getElementById('api-badge').textContent = API.replace(/^https?:\/\//, '')
+    loadAll()
+  }
+}
+</script>
+</body>
+</html>

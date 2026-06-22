@@ -44,15 +44,12 @@ export function Bear({ size = 120, className, interactive = true, mood: moodOver
   const bearMood = useKidify((s) => s.bearMood);
   const accessory = useKidify((s) => s.bearAccessory);
   const patBear = useKidify((s) => s.patBear);
-  const registerAdminTap = useKidify((s) => s.registerAdminTap);
-  const unlockAdmin = useKidify((s) => s.unlockAdmin);
   const earnSticker = useKidify((s) => s.earnSticker);
   const setBearMood = useKidify((s) => s.setBearMood);
 
   const mood = moodOverride ?? bearMood;
   const [hearts, setHearts] = useState<{ id: number; x: number }[]>([]);
   const [squish, setSquish] = useState(false);
-  const [sparkle, setSparkle] = useState(false);
 
   // occasional idle mood drift for the big interactive bear
   useEffect(() => {
@@ -83,15 +80,8 @@ export function Bear({ size = 120, className, interactive = true, mood: moodOver
     if (interactive) {
       patBear();
       earnSticker("pat");
-      // secret: 7 quick taps unlock admin
-      const unlocked = registerAdminTap();
-      if (unlocked) {
-        unlockAdmin();
-        setSparkle(true);
-        setTimeout(() => setSparkle(false), 2000);
-      }
     }
-  }, [interactive, patBear, earnSticker, registerAdminTap, unlockAdmin]);
+  }, [interactive, patBear, earnSticker]);
 
   // eye state by mood
   const eyeShape =
@@ -346,29 +336,6 @@ export function Bear({ size = 120, className, interactive = true, mood: moodOver
           )}
         </AnimatePresence>
 
-        {/* admin sparkle burst */}
-        <AnimatePresence>
-          {sparkle && (
-            <>
-              {[0, 60, 120, 180, 240, 300].map((deg) => (
-                <motion.div
-                  key={deg}
-                  className="absolute left-1/2 top-1/2 text-yellow-400"
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{
-                    opacity: [0, 1, 0],
-                    scale: [0, 1.2, 0],
-                    x: Math.cos((deg * Math.PI) / 180) * 50,
-                    y: Math.sin((deg * Math.PI) / 180) * 50,
-                  }}
-                  transition={{ duration: 1.2 }}
-                >
-                  ✨
-                </motion.div>
-              ))}
-            </>
-          )}
-        </AnimatePresence>
       </motion.div>
 
       {bearName && interactive && (

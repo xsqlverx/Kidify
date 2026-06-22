@@ -10,9 +10,8 @@ import { PeriodTracker } from "./features/PeriodTracker";
 import { Gallery } from "./features/Gallery";
 import { Garden } from "./features/Garden";
 import { ThankYou } from "./features/ThankYou";
-import { AdminPanel } from "./features/Admin";
 import { BearSpeech } from "./features/BearSpeech";
-import { Home, Droplet, ImageIcon, Flower2, Heart, Settings } from "lucide-react";
+import { Home, Droplet, ImageIcon, Flower2, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Tab = "home" | "cycle" | "gallery" | "garden" | "thanks";
@@ -27,28 +26,18 @@ const TABS: { id: Tab; label: string; icon: typeof Home }[] = [
 
 export function AppShell() {
   const [tab, setTab] = useState<Tab>("home");
-  const [adminDismissed, setAdminDismissed] = useState(false);
-  const adminUnlocked = useKidify((s) => s.adminUnlocked);
   const bearName = useKidify((s) => s.bearName);
   const resetWaterIfNewDay = useKidify((s) => s.resetWaterIfNewDay);
   const bearPats = useKidify((s) => s.bearPats);
 
-  // reset water count on a new day
   useEffect(() => {
     resetWaterIfNewDay();
   }, [resetWaterIfNewDay]);
-
-  // panel auto-opens when the secret 7-tap unlocks admin (unless dismissed)
-  const adminOpen = adminUnlocked && !adminDismissed;
-
-  const openAdmin = () => setAdminDismissed(false);
-  const closeAdmin = () => setAdminDismissed(true);
 
   return (
     <div className="relative min-h-[100dvh] w-full">
       <FloatingDecor density={10} />
 
-      {/* main scroll area */}
       <main className="relative z-10 mx-auto w-full max-w-md px-4 pb-28 pt-6">
         <AnimatePresence mode="wait">
           <motion.div
@@ -68,18 +57,13 @@ export function AppShell() {
         </AnimatePresence>
       </main>
 
-      {/* floating bear — follows her everywhere, with a little tab-themed prop */}
       <motion.button
         className="fixed bottom-24 right-4 z-40"
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.3, type: "spring", stiffness: 140 }}
-        aria-label={`${bearName} — tap to play, tap 7 times for admin`}
-        onClick={() => {
-          // taps handled inside Bear; this is just so the button is focusable
-        }}
+        aria-label={bearName ?? "bear"}
       >
-        {/* contextual prop bubble */}
         <motion.div
           key={tab}
           className="absolute -left-3 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-sm shadow-soft"
@@ -106,20 +90,6 @@ export function AppShell() {
         )}
       </motion.button>
 
-      {/* admin gear — only visible after unlock */}
-      {adminUnlocked && (
-        <motion.button
-          className="fixed bottom-44 right-4 z-40 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-rose-500 shadow-soft backdrop-blur"
-          onClick={() => openAdmin()}
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          aria-label="open admin panel"
-        >
-          <Settings className="h-4 w-4" />
-        </motion.button>
-      )}
-
-      {/* bottom navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-rose-100/60 bg-gradient-to-t from-white/90 via-white/80 to-white/70 backdrop-blur-xl">
         <div className="mx-auto flex max-w-md items-stretch justify-around px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2">
           {TABS.map(({ id, label, icon: Icon }) => {
@@ -154,13 +124,7 @@ export function AppShell() {
         </div>
       </nav>
 
-      {/* bear speech bubble — reacts to her actions */}
       <BearSpeech />
-
-      {/* admin panel */}
-      <AnimatePresence>
-        {adminOpen && <AdminPanel onClose={closeAdmin} />}
-      </AnimatePresence>
     </div>
   );
 }

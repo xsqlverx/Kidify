@@ -1,7 +1,4 @@
-// Merges mock data with admin-posted content from localStorage.
-// When the backend is live (see backend-setup.md section 8), replace these
-// functions with real API calls.
-import { useAdmin } from "./admin-store";
+import { useState, useEffect } from "react"
 import {
   getDailyMessage,
   getMessageForOffset,
@@ -10,33 +7,77 @@ import {
   type DailyMessage,
   type GalleryImage,
   type ThankYouContent,
-} from "./mock-data";
+} from "./mock-data"
 
-/** Get today's message, preferring admin-posted ones for today's date. */
+function getDateFromOffset(offset: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + offset)
+  return d.toISOString().slice(0, 10)
+}
+
 export function useDailyMessage(dayOffset: number = 0): DailyMessage {
-  const custom = useAdmin((s) => s.customMessages);
-  const base = dayOffset === 0 ? getDailyMessage() : getMessageForOffset(dayOffset);
-  const override = custom.find((m) => m.date === base.date);
-  return override ?? base;
+  const [apiMessage, setApiMessage] = useState<DailyMessage | null>(null)
+  const date = getDateFromOffset(dayOffset)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/messages/${date}`)
+      .then((r) => (r.ok ? r.json() : Promise.resolve(null)))
+      .then((data) => {
+        if (!cancelled && data && data.title) {
+          setApiMessage(data)
+        }
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [date])
+
+  const fallback = dayOffset === 0 ? getDailyMessage() : getMessageForOffset(dayOffset)
+  return apiMessage ?? fallback
 }
 
-/** Get a range of daily messages (non-hook, for bulk access). */
 export function getMessagesForRange(fromOffset: number, toOffset: number): DailyMessage[] {
-  const results: DailyMessage[] = [];
+  const fallback: DailyMessage[] = []
   for (let i = fromOffset; i <= toOffset; i++) {
-    results.push(i === 0 ? getDailyMessage() : getMessageForOffset(i));
+    fallback.push(i === 0 ? getDailyMessage() : getMessageForOffset(i))
   }
-  return results;
+  return fallback
 }
 
-/** All gallery images: admin-posted first, then defaults. */
 export function useGalleryImages(): GalleryImage[] {
-  const custom = useAdmin((s) => s.customGallery);
-  return [...custom, ...GALLERY_IMAGES];
+  const [apiImages, setApiImages] = useState<GalleryImage[] | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch("/api/gallery")
+      .then((r) => (r.ok ? r.json() : Promise.resolve(null)))
+      .then((data) => {
+        if (!cancelled && Array.isArray(data) && data.length > 0) {
+          setApiImages(data)
+        }
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  return apiImages ?? GALLERY_IMAGES
 }
 
-/** Thank you content: admin-edited or default. */
 export function useThankYou(): ThankYouContent {
-  const custom = useAdmin((s) => s.customThankYou);
-  return custom ?? THANK_YOU_CONTENT;
+  const [apiThankYou, setApiThankYou] = useState<ThankYouContent | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch("/api/thankyou")
+      .then((r) => (r.ok ? r.json() : Promise.resolve(null)))
+      .then((data) => {
+        if (!cancelled && data && data.intro) {
+          setApiThankYou(data)
+        }
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  return apiThankYou ?? THANK_YOU_CONTENT
 }
