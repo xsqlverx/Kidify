@@ -124,6 +124,7 @@
     <button class="tab active" onclick="switchTab('messages',this)">Messages</button>
     <button class="tab" onclick="switchTab('gallery',this)">Gallery</button>
     <button class="tab" onclick="switchTab('thanks',this)">Thank You</button>
+    <button class="tab" onclick="switchTab('danger',this)" style="color:#F87171">Reset</button>
   </div>
 
   <div id="tab-messages" class="tab-content">
@@ -163,6 +164,15 @@
     <div class="card">
       <h3>🖼️ Gallery Images</h3>
       <div id="gallery-list" class="item-list"><p class="empty">loading...</p></div>
+    </div>
+  </div>
+
+  <div id="tab-danger" class="tab-content hidden">
+    <div class="card" style="border:2px solid #FECACA">
+      <h3 style="color:#F87171">⚠️ Danger Zone</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">This wipes everything: unlock code, messages, gallery, thank you content, activity logs. The app will show the onboarding screen on next launch as if it's the first time.</p>
+      <button onclick="resetEverything()" class="danger" style="width:100%;padding:14px;font-size:15px">🔥 Reset All Data</button>
+      <p id="reset-result" class="hidden" style="margin-top:8px"></p>
     </div>
   </div>
 
@@ -406,6 +416,26 @@ async function resetThankYou() {
   if (data?.success) {
     toast('thank you reset to default')
     loadThankYou()
+  }
+}
+
+async function resetEverything() {
+  if (!confirm('⚠️ This will permanently delete ALL data:\n\n• Unlock code (app will show onboarding)\n• All messages\n• All gallery images\n• Thank you content\n• Activity logs\n\nAre you absolutely sure?')) return
+  if (!confirm('Last chance. Type "yes" in the next prompt to confirm.')) return
+  const yes = prompt('Type "yes" to confirm the reset:')
+  if (yes !== 'yes') { toast('reset cancelled'); return }
+
+  const result = document.getElementById('reset-result')
+  const data = await api('/api/reset', { method: 'POST' })
+  if (data?.success) {
+    result.textContent = data.message
+    result.className = 'success-msg'
+    result.classList.remove('hidden')
+    toast('all data wiped successfully')
+  } else {
+    result.textContent = 'reset failed'
+    result.className = 'error-msg'
+    result.classList.remove('hidden')
   }
 }
 

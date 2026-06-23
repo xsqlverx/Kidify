@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getDb } from "@/lib/mongodb"
+import { supabase } from "@/lib/supabase"
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,20 +8,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "invalid_code" }, { status: 400 })
     }
 
-    const db = await getDb()
-    const existing = await db.collection("config").findOne({ _id: "unlock" })
+    const { data: existing } = await supabase
+      .from("config")
+      .select("id")
+      .eq("id", "unlock")
+      .maybeSingle()
 
     if (existing) {
       return NextResponse.json({ success: false, error: "already_setup" }, { status: 409 })
     }
 
-    await db.collection("config").insertOne({
-      _id: "unlock",
+    await supabase.from("config").insert({
+      id: "unlock",
       code,
       attempts: 0,
-      failsafeLocked: false,
-      failsafeUntil: null,
-      createdAt: new Date(),
+      failsafe_locked: false,
+      failsafe_until: null,
     })
 
     return NextResponse.json({ success: true })

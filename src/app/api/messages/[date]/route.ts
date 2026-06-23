@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getDb } from "@/lib/mongodb"
+import { supabase } from "@/lib/supabase"
 import { requireAdmin } from "@/lib/api-helpers"
 
 export async function GET(
@@ -8,12 +8,17 @@ export async function GET(
 ) {
   try {
     const { date } = await params
-    const db = await getDb()
-    const message = await db.collection("messages").findOne({ date })
+    const { data: message } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("date", date)
+      .maybeSingle()
+
     if (!message) {
       return NextResponse.json({ error: "not_found" }, { status: 404 })
     }
-    const { _id, createdAt, ...rest } = message
+
+    const { id, created_at, ...rest } = message
     return NextResponse.json(rest)
   } catch {
     return NextResponse.json({ error: "server_error" }, { status: 500 })
@@ -29,8 +34,7 @@ export async function DELETE(
 
   try {
     const { date } = await params
-    const db = await getDb()
-    await db.collection("messages").deleteOne({ date })
+    await supabase.from("messages").delete().eq("date", date)
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: "server_error" }, { status: 500 })

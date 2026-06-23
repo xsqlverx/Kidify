@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getDb } from "@/lib/mongodb"
+import { supabase } from "@/lib/supabase"
 import { requireAdmin, corsHeaders, handleOptions } from "@/lib/api-helpers"
 
 export async function OPTIONS(req: NextRequest) {
@@ -25,21 +25,15 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const db = await getDb()
     const message = {
       date: body.date,
       title: body.title,
       body: body.body,
       signature: body.signature || "— always, me",
       sticker: body.sticker || "💌",
-      createdAt: new Date(),
     }
 
-    await db.collection("messages").updateOne(
-      { date: message.date },
-      { $set: message },
-      { upsert: true }
-    )
+    await supabase.from("messages").upsert(message, { onConflict: "date" })
 
     return NextResponse.json({ success: true }, { headers: corsHeaders(origin) })
   } catch {

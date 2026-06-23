@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getDb } from "@/lib/mongodb"
+import { supabase } from "@/lib/supabase"
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,50 +8,52 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "invalid" }, { status: 400 })
     }
 
-    const db = await getDb()
-    const config = await db.collection("config").findOne({ _id: "unlock" })
+    const { data: config } = await supabase
+      .from("config")
+      .select("*")
+      .eq("id", "unlock")
+      .maybeSingle()
 
     if (!config) {
       return NextResponse.json({ success: false, error: "not_setup" }, { status: 404 })
     }
 
-    if (config.failsafeLocked && config.failsafeUntil > Date.now()) {
+    if (config.failsafe_locked && config.failsafe_until > Date.now()) {
       return NextResponse.json({
         success: false,
         locked: true,
-        lockedUntil: config.failsafeUntil,
+        lockedUntil: config.failsafe_until,
       })
     }
 
-    if (config.failsafeLocked) {
-      await db.collection("config").updateOne(
-        { _id: "unlock" },
-        { $set: { failsafeLocked: false, failsafeUntil: null } }
-      )
+    if (config.failsafe_locked) {
+      await supabase
+        .from("config")
+        .update({ failsafe_locked: false, failsafe_until: null })
+        .eq("id", "unlock")
     }
 
     if (code === config.code) {
-      await db.collection("config").updateOne(
-        { _id: "unlock" },
-        { $set: { attempts: 0 } }
-      )
+      await supabase
+        .from("config")
+        .update({ attempts: 0 })
+        .eq("id", "unlock")
       return NextResponse.json({ success: true })
     }
 
     const attempts = (config.attempts || 0) + 1
-    const update: Record<string, unknown> = { $set: { attempts } }
+    const update: Record<string, unknown> = { attempts }
 
     if (attempts >= 5) {
       const lockedUntil = Date.now() + 1000 * 60 * 5
-      update.$set = {
-        ...update.$set,
-        failsafeLocked: true,
-        failsafeUntil: lockedUntil,
-      }
-      console.log(`[FAILSAFE] 5 wrong unlock attempts at ${new Date().toISOString()}`)
+      update.failsafe_locked = true
+      update.failsafe_until = lockedUntil
     }
 
-    await db.collection("config").updateOne({ _id: "unlock" }, update)
+    await supabase
+      .from("config")
+      .update(update)
+      .eq("id", "unlock")
 
     return NextResponse.json({
       success: false,

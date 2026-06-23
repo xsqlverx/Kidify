@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getDb } from "@/lib/mongodb"
+import { supabase } from "@/lib/supabase"
 import { requireAdmin, corsHeaders, handleOptions } from "@/lib/api-helpers"
 
 export async function OPTIONS(req: NextRequest) {
@@ -10,16 +10,14 @@ export async function GET(req: NextRequest) {
   const origin = req.headers.get("origin")
 
   try {
-    const db = await getDb()
-    const images = await db
-      .collection("gallery")
-      .find({})
-      .sort({ date: -1 })
-      .toArray()
+    const { data: images } = await supabase
+      .from("gallery")
+      .select("*")
+      .order("created_at", { ascending: false })
 
-    const cleaned = images.map(({ _id, createdAt, ...rest }) => ({
+    const cleaned = (images || []).map(({ id, created_at, ...rest }) => ({
       ...rest,
-      id: rest.id || String(_id),
+      id,
     }))
     return NextResponse.json(cleaned, { headers: corsHeaders(origin) })
   } catch {
@@ -47,19 +45,16 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const db = await getDb()
     const image = {
-      id: body.id || `gallery-${Date.now()}`,
       url: body.url,
-      cloudinaryId: body.cloudinaryId || null,
+      cloudinary_id: body.cloudinaryId || null,
       caption: body.caption || "",
       date: body.date || new Date().toISOString().slice(0, 10),
-      createdAt: new Date(),
     }
 
-    await db.collection("gallery").insertOne(image)
+    const { data } = await supabase.from("gallery").insert(image).select().single()
 
-    return NextResponse.json({ success: true, id: image.id }, { headers: corsHeaders(origin) })
+    return NextResponse.json({ success: true, id: data?.id }, { headers: corsHeaders(origin) })
   } catch {
     return NextResponse.json(
       { error: "server_error" },

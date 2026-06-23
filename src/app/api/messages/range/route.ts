@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getDb } from "@/lib/mongodb"
+import { supabase } from "@/lib/supabase"
 import { corsHeaders, handleOptions } from "@/lib/api-helpers"
 
 export async function OPTIONS(req: NextRequest) {
@@ -18,14 +18,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "missing from/to" }, { status: 400, headers: corsHeaders(origin) })
     }
 
-    const db = await getDb()
-    const messages = await db
-      .collection("messages")
-      .find({ date: { $gte: from, $lte: to } })
-      .sort({ date: 1 })
-      .toArray()
+    const { data: messages } = await supabase
+      .from("messages")
+      .select("*")
+      .gte("date", from)
+      .lte("date", to)
+      .order("date", { ascending: true })
 
-    const cleaned = messages.map(({ _id, createdAt, ...rest }) => rest)
+    const cleaned = (messages || []).map(({ id, created_at, ...rest }) => rest)
     return NextResponse.json(cleaned, { headers: corsHeaders(origin) })
   } catch {
     return NextResponse.json({ error: "server_error" }, { status: 500, headers: corsHeaders(origin) })

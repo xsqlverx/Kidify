@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getDb } from "@/lib/mongodb"
+import { supabase } from "@/lib/supabase"
 import { requireAdmin, handleOptions } from "@/lib/api-helpers"
 
 export async function OPTIONS(req: NextRequest) {
@@ -15,8 +15,7 @@ export async function DELETE(
 
   try {
     const { id } = await params
-    const db = await getDb()
-    await db.collection("gallery").deleteOne({ id })
+    await supabase.from("gallery").delete().eq("id", id)
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: "server_error" }, { status: 500 })
