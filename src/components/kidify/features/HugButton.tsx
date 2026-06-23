@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useCallback } from "react";
 import { useKidify } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
 
@@ -38,6 +39,7 @@ export function HugButton() {
     if (cooldown) return;
     sendHug();
     earnSticker("hug");
+    logActivity("hug_sent", `Hug sent (total: ${hugsSent + 1})`);
     setBurst(true);
     setTimeout(() => setBurst(false), 1200);
 

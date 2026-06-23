@@ -6,6 +6,7 @@ import { PinkCard, PinkButton, Pill } from "../ui/decor";
 import { Portal } from "../ui/portal";
 import { LOVE_QUOTES } from "@/lib/quotes-data";
 import { Quote, X, Shuffle, Heart, Share2 } from "lucide-react";
+import { logActivity } from "@/lib/activity-logger";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +35,7 @@ export function DailyQuote() {
     setFavorites((f) =>
       f.includes(idx) ? f.filter((i) => i !== idx) : [...f, idx],
     );
+    logActivity("quote_saved", `Quote ${isFav ? "unsaved" : "saved"}: "${quote.text.substring(0, 40)}..."`);
     toast.success(isFav ? "unsaved. 💗" : "saved to your heart. 🤍");
   };
 

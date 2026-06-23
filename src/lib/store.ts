@@ -692,6 +692,7 @@ export const useKidify = create<KidifyState>()(
       // re-locks the admin panel (more secure, avoids auto-opening)
       partialize: (s) => {
         const {
+          unlocked: _unlocked,
           adminUnlocked: _u,
           adminTapCount: _c,
           adminTapResetAt: _r,

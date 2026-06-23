@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { PinkCard, PinkButton, Pill } from "../ui/decor";
 import { Portal } from "../ui/portal";
 import { useKidify } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { Wind, X, Play, Pause } from "lucide-react";
 import { toast } from "sonner";
 
@@ -106,6 +107,7 @@ export function BreathingBubble() {
             onClose={() => setOpen(false)}
             onComplete={() => {
               logBreathSession();
+              logActivity("breath_session", `Breathing session completed`);
               toast.success("there you are. 🤍", {
                 description: "you did good. the bear is proud of you.",
               });

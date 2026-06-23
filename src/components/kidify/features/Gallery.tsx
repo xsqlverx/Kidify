@@ -7,6 +7,7 @@ import { Portal } from "../ui/portal";
 import { useGalleryImages } from "@/lib/data-access";
 import type { GalleryImage } from "@/lib/mock-data";
 import { useKidify } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { Heart, X, Lock, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -83,6 +84,7 @@ export function Gallery() {
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleFavorite(img.id);
+                  logActivity("gallery_favorited", `Image ${isFav(img.id) ? "unfavorited" : "favorited"}: ${img.caption}`);
                 }}
                 className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/30 backdrop-blur transition-all hover:bg-white/50"
                 aria-label="favorite"
@@ -133,7 +135,10 @@ export function Gallery() {
             index={active}
             total={images.length}
             isFav={isFav(images[active].id)}
-            onFav={() => toggleFavorite(images[active].id)}
+            onFav={() => {
+              toggleFavorite(images[active].id);
+              logActivity("gallery_favorited", `Image favorited in viewer: ${images[active].caption}`);
+            }}
             onClose={() => setActive(null)}
             onPrev={() => navigate(-1)}
             onNext={() => navigate(1)}

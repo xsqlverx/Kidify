@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { PinkCard, PinkButton, Pill, SectionTitle } from "../ui/decor";
 import { Portal } from "../ui/portal";
 import { useKidify, PLANT_TYPES, type Plant } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { Droplets, Coins, Sprout, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -90,6 +91,7 @@ export function Garden() {
       return;
     }
     addPlant(pickedType, newName.trim() || PLANT_INFO[pickedType].name);
+    logActivity("plant_planted", `Planted: ${newName || PLANT_INFO[pickedType].name} (${pickedType})`);
     toast.success("planted! 🌱", {
       description: `${newName || PLANT_INFO[pickedType].name} says hi. water it to help it grow.`,
     });
@@ -104,6 +106,8 @@ export function Garden() {
     }
     waterPlant(p.id);
     earnSticker("garden");
+    logActivity("plant_watered", `Watered: ${p.name} (${p.type}, growth: ${p.growth})`);
+    logActivity("coins_earned", `+2 coins from watering ${p.name}`);
     if (p.growth + 1 >= 4) {
       toast.success("fully grown! 🌸", {
         description: "+2 coins. you're a natural.",
@@ -216,7 +220,10 @@ export function Garden() {
                       ))}
                     </div>
                     <button
-                      onClick={() => removePlant(p.id)}
+                      onClick={() => {
+                        removePlant(p.id);
+                        logActivity("plant_removed", `Removed plant: ${p.name} (${p.type})`);
+                      }}
                       className="absolute right-1 top-1 hidden h-5 w-5 items-center justify-center rounded-full bg-rose-100/80 text-rose-400 group-hover:flex hover:text-rose-600"
                       aria-label={`remove ${p.name}`}
                     >

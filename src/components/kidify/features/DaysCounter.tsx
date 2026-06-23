@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useKidify } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { PinkCard, Pill } from "../ui/decor";
 import { Portal } from "../ui/portal";
 import { CalendarHeart, Sparkles } from "lucide-react";
@@ -59,6 +60,7 @@ export function DaysCounter() {
       return;
     }
     setAnniversary(pickDate);
+    logActivity("anniversary_set", `Anniversary set to ${pickDate}`);
     setEditing(false);
     toast.success("saved. 💗", {
       description: "now the bear will count with you, every single day.",

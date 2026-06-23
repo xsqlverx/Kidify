@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PinkCard, PinkButton, Pill, SectionTitle } from "../ui/decor";
 import { Portal } from "../ui/portal";
 import { useKidify, type MoodEntry } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { Smile, X, PenLine, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,7 @@ export function MoodDiary() {
   const handleSave = () => {
     if (!selectedMood) return;
     logMood(selectedMood.emoji, selectedMood.label, note.trim() || undefined);
+    logActivity("mood_logged", `Mood logged: ${selectedMood.emoji} ${selectedMood.label}${note ? ' - ' + note : ''}`);
     toast.success("noted. 🤍", {
       description: selectedMood.emoji + " " + selectedMood.label,
     });

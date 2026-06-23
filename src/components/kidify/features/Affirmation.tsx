@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { PinkCard, PinkButton, Pill } from "../ui/decor";
 import { Portal } from "../ui/portal";
 import { useKidify } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { AFFIRMATIONS } from "@/lib/affirmations-data";
 import { Sparkles, Heart, X, Bookmark, BookmarkCheck, Shuffle } from "lucide-react";
 import { toast } from "sonner";
@@ -34,6 +35,7 @@ export function AffirmationCard() {
 
   const handleSave = () => {
     toggleAffirmation(idx);
+    logActivity("affirmation_saved", `${isSaved ? "unsaved" : "saved"}: ${current.emoji} ${current.text.substring(0, 40)}`);
     toast.success(isSaved ? "unsaved. 💗" : "saved to your heart. 🤍", {
       description: isSaved ? undefined : "come back to it whenever you need it.",
     });
@@ -174,6 +176,7 @@ export function AffirmationCard() {
                           <button
                             onClick={() => {
                               toggleAffirmation(i);
+                              logActivity("affirmation_saved", `Removed saved affirmation`);
                               toast("unsaved");
                             }}
                             className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-rose-300 hover:bg-rose-100 hover:text-rose-500"

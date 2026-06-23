@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PinkCard, PinkButton, Pill, SectionTitle } from "../ui/decor";
 import { Portal } from "../ui/portal";
 import { useKidify } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { Star, X, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,6 +26,7 @@ export function StarWish() {
     setShooting(true);
     setTimeout(() => {
       addWish(text);
+      logActivity("wish_made", `Wish made: ${text.substring(0, 60)}`);
       toast.success("your wish is on its way. 🌠", {
         description: "the stars are listening. they always are.",
       });
@@ -129,6 +131,7 @@ export function StarWish() {
                 <button
                   onClick={() => {
                     removeWish(w.id);
+                    logActivity("wish_removed", `Wish released: ${w.text.substring(0, 50)}`);
                     toast("wish released to the sky");
                   }}
                   className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-white/40 opacity-0 transition-opacity group-hover:opacity-100 hover:text-white"

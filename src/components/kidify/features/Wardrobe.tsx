@@ -5,6 +5,7 @@ import { Bear } from "../Bear";
 import { PinkButton, Pill } from "../ui/decor";
 import { Portal } from "../ui/portal";
 import { useKidify } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { Sparkles, Lock, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -40,6 +41,7 @@ export function Wardrobe({ open, onClose }: { open: boolean; onClose: () => void
       return;
     }
     setBearAccessory(a.id);
+    logActivity("accessory_equipped", `Accessory equipped: ${a.name} ${a.emoji}`);
     toast.success(`${bearName} looks adorable in the ${a.name}! ${a.emoji}`);
   };
 

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { PinkCard, PinkButton, Pill } from "../ui/decor";
 import { Portal } from "../ui/portal";
 import { useKidify } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { Gift, X, Sparkles } from "lucide-react";
 
 // 30 little daily surprises — one per day, rotating by day-of-year
@@ -58,6 +59,7 @@ export function SurpriseBox() {
   const handleOpen = () => {
     if (!surpriseOpened) {
       openSurprise();
+      logActivity("surprise_opened", `Surprise opened: ${surprise.title} (${surprise.emoji})`);
     }
     setShowModal(true);
   };

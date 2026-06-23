@@ -24,6 +24,7 @@ import { GratitudeJar } from "./GratitudeJar";
 import { AmbientSound } from "./AmbientSound";
 import { DailyQuote } from "./DailyQuote";
 import { useKidify } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { useDailyMessage } from "@/lib/data-access";
 import type { DailyMessage } from "@/lib/mock-data";
 import { Droplets, ChevronLeft, ChevronRight, Check, CalendarDays, Shirt, Heart } from "lucide-react";
@@ -71,6 +72,7 @@ export function HomeFeature() {
   const handleRead = () => {
     markMessageRead(msg.date);
     if (isToday) earnSticker("read");
+    logActivity("message_read", `Message read: ${msg.date} - ${msg.title}`);
     toast.success("marked as read. 💗", {
       description: "he'll know you saw it.",
     });
@@ -80,6 +82,7 @@ export function HomeFeature() {
     const willComplete = waterCups + 1 >= waterGoal && waterCups < waterGoal;
     addWater(1);
     earnSticker("water");
+    logActivity("water_drank", `Water: cup ${waterCups + 1}/${waterGoal}`);
     if (willComplete) {
       toast.success("you did it! 💧", {
         description: `${bearName} is so proud of you.`,

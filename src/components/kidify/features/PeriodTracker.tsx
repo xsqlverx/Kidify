@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { PinkCard, PinkButton, Pill, SectionTitle } from "../ui/decor";
 import { Portal } from "../ui/portal";
 import { useKidify } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { Droplet, Heart, Sparkles, Flower2, Moon, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -98,6 +99,7 @@ export function PeriodTracker() {
 
   const handleLog = () => {
     addPeriodLog(pickedDate);
+    logActivity("cycle_logged", `Period logged: ${pickedDate}`);
     toast.success("logged. 💗", {
       description: "take it easy. you know where the bear is.",
     });
@@ -106,6 +108,7 @@ export function PeriodTracker() {
 
   const handleRemove = (id: string, date: string) => {
     removePeriodLog(id);
+    logActivity("cycle_removed", `Period entry removed: ${date}`);
     toast(`removed ${date}`);
   };
 

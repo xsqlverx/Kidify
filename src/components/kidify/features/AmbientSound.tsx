@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { PinkCard, Pill } from "../ui/decor";
 import { Volume2, VolumeX, Cloud, CloudRain, Wind, Waves } from "lucide-react";
 import { toast } from "sonner";
+import { logActivity } from "@/lib/activity-logger";
 import { cn } from "@/lib/utils";
 
 type SoundType = "rain" | "wind" | "waves" | "none";
@@ -113,12 +114,14 @@ export function AmbientSound() {
     if (type === active) {
       setActive("none");
       stopSound();
+      logActivity("sound_toggled", `Sound off`);
       toast("sound off");
       return;
     }
     setActive(type);
     startSound(type);
     const sound = SOUNDS.find((s) => s.id === type);
+    logActivity("sound_toggled", `Sound on: ${sound?.label}`);
     if (sound) {
       toast(`${sound.icon ? "🔊" : ""} ${sound.label} on`, {
         description: sound.desc,

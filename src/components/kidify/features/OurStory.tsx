@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PinkCard, PinkButton, Pill, SectionTitle } from "../ui/decor";
 import { Portal } from "../ui/portal";
 import { useKidify, type StoryMilestone } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { BookHeart, X, Plus, Trash2, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,6 +28,7 @@ export function OurStory() {
       return;
     }
     addMilestone(emoji, title, date, note);
+    logActivity("milestone_added", `Milestone added: ${emoji} ${title} (${date})`);
     toast.success("added to our story. 🤍", {
       description: `${emoji} ${title}`,
     });
@@ -81,6 +83,7 @@ export function OurStory() {
                 isLast={i === Math.min(3, storyMilestones.length - 1)}
                 onRemove={() => {
                   removeMilestone(m.id);
+                  logActivity("milestone_removed", `Milestone removed: ${m.emoji} ${m.title}`);
                   toast("chapter removed");
                 }}
               />

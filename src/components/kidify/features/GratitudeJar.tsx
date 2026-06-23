@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PinkCard, PinkButton, Pill, SectionTitle } from "../ui/decor";
 import { Portal } from "../ui/portal";
 import { useKidify } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { Sparkles, X, Plus, Trash2, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,7 @@ export function GratitudeJar() {
       return;
     }
     addGratitude(text, emoji);
+    logActivity("gratitude_added", `Gratitude added: ${emoji} ${text.substring(0, 50)}`);
     toast.success("kept. 🤍", {
       description: "small gratitudes, big heart.",
     });
@@ -93,6 +95,7 @@ export function GratitudeJar() {
                   <button
                     onClick={() => {
                       removeGratitude(g.id);
+                      logActivity("gratitude_removed", `Gratitude removed: ${g.emoji} ${g.text.substring(0, 40)}`);
                       toast("released");
                     }}
                     className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-rose-300 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-500 group-hover:opacity-100"

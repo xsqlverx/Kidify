@@ -123,6 +123,7 @@
   <div class="tabs">
     <button class="tab active" onclick="switchTab('messages',this)">Messages</button>
     <button class="tab" onclick="switchTab('gallery',this)">Gallery</button>
+    <button class="tab" onclick="switchTab('activity',this)">Activity</button>
     <button class="tab" onclick="switchTab('thanks',this)">Thank You</button>
     <button class="tab" onclick="switchTab('danger',this)" style="color:#F87171">Reset</button>
   </div>
@@ -165,6 +166,51 @@
     <div class="card">
       <h3>🖼️ Gallery Images</h3>
       <div id="gallery-list" class="item-list"><p class="empty">loading...</p></div>
+    </div>
+  </div>
+
+  <div id="tab-activity" class="tab-content hidden">
+    <div class="card">
+      <h3>📊 Activity Logs</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">every action she takes in the app, logged in real time.</p>
+      <div class="row" style="margin-bottom:12px">
+        <select id="activity-filter" onchange="loadActivity()" style="flex:1">
+          <option value="">all types</option>
+          <option value="cycle_logged">cycle logged</option>
+          <option value="cycle_removed">cycle removed</option>
+          <option value="water_drank">water drank</option>
+          <option value="plant_planted">plant planted</option>
+          <option value="plant_watered">plant watered</option>
+          <option value="plant_removed">plant removed</option>
+          <option value="coins_earned">coins earned</option>
+          <option value="hug_sent">hug sent</option>
+          <option value="mood_logged">mood logged</option>
+          <option value="memory_added">memory added</option>
+          <option value="memory_removed">memory removed</option>
+          <option value="gratitude_added">gratitude added</option>
+          <option value="gratitude_removed">gratitude removed</option>
+          <option value="wish_made">wish made</option>
+          <option value="wish_removed">wish removed</option>
+          <option value="milestone_added">milestone added</option>
+          <option value="milestone_removed">milestone removed</option>
+          <option value="care_task_done">care task done</option>
+          <option value="sticker_earned">sticker earned</option>
+          <option value="surprise_opened">surprise opened</option>
+          <option value="breath_session">breath session</option>
+          <option value="reason_revealed">reason revealed</option>
+          <option value="gallery_favorited">gallery favorited</option>
+          <option value="message_read">message read</option>
+          <option value="anniversary_set">anniversary set</option>
+          <option value="affirmation_saved">affirmation saved</option>
+          <option value="quote_saved">quote saved</option>
+          <option value="bear_patted">bear patted</option>
+          <option value="sound_toggled">sound toggled</option>
+          <option value="accessory_equipped">accessory equipped</option>
+        </select>
+        <button onclick="loadActivity()" class="secondary" style="flex-shrink:0">refresh</button>
+      </div>
+      <div id="activity-list" class="item-list"><p class="empty">loading...</p></div>
+      <p id="activity-count" style="font-size:11px;color:var(--text-muted);margin-top:8px"></p>
     </div>
   </div>
 
@@ -258,6 +304,7 @@ async function api(path, options = {}) {
 async function loadAll() {
   loadMessages()
   loadGallery()
+  loadActivity()
   loadThankYou()
 }
 
@@ -383,6 +430,40 @@ async function deleteGalleryImage(id) {
   await api('/api/gallery/' + id, { method: 'DELETE' })
   toast('removed')
   loadGallery()
+}
+
+async function loadActivity() {
+  const el = document.getElementById('activity-list')
+  const count = document.getElementById('activity-count')
+  const filter = document.getElementById('activity-filter').value
+  try {
+    let url = API + '/api/activity?limit=200'
+    if (filter) url += '&type=' + encodeURIComponent(filter)
+    const res = await fetch(url, { mode: 'cors', headers: { 'Authorization': 'Bearer ' + secret } })
+    if (res.status === 401) { el.innerHTML = '<p class="empty">unauthorized — check your secret</p>'; return }
+    const data = await res.json()
+    if (Array.isArray(data) && data.length > 0) {
+      el.innerHTML = data.map(a => {
+        const d = new Date(a.ts || a.created_at)
+        const time = d.toLocaleString()
+        return `
+          <div class="item">
+            <div class="info">
+              <div class="title">${esc(a.type)}</div>
+              <div class="meta">${time}${a.detail ? ' · ' + esc(a.detail) : ''}</div>
+            </div>
+          </div>
+        `
+      }).join('')
+      count.textContent = data.length + ' event' + (data.length !== 1 ? 's' : '') + ' shown'
+    } else {
+      el.innerHTML = '<p class="empty">no activity logs yet</p>'
+      count.textContent = ''
+    }
+  } catch {
+    el.innerHTML = '<p class="empty">could not load activity logs</p>'
+    count.textContent = ''
+  }
 }
 
 async function loadThankYou() {

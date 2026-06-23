@@ -2,6 +2,7 @@
 
 import { useKidify, useHydrated } from "@/lib/store";
 import { Onboarding } from "@/components/kidify/Onboarding";
+import { LockScreen } from "@/components/kidify/LockScreen";
 import { AppShell } from "@/components/kidify/AppShell";
 
 export default function Home() {
@@ -17,7 +18,7 @@ export default function Home() {
     );
   }
 
-  const showApp = onboardingComplete && unlocked;
-
-  return showApp ? <AppShell /> : <Onboarding />;
+  if (!onboardingComplete) return <Onboarding />;
+  if (!unlocked) return <LockScreen />;
+  return <AppShell />;
 }

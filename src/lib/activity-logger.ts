@@ -21,6 +21,8 @@ type ActivityType =
   | "affirmation_saved"
   | "quote_saved"
   | "bear_patted"
+  | "sound_toggled"
+  | "accessory_equipped"
 
 export function logActivity(type: ActivityType, detail?: string) {
   fetch(API, {

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PinkCard, PinkButton, Pill } from "../ui/decor";
 import { Portal } from "../ui/portal";
 import { useKidify } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { REASONS } from "@/lib/reasons-data";
 import { X, ChevronLeft, ChevronRight, Sparkles, Heart } from "lucide-react";
 import { toast } from "sonner";
@@ -32,6 +33,7 @@ export function ReasonsDeck({ open, onClose }: { open: boolean; onClose: () => v
     if (!isRevealed) {
       revealReason(idx);
       earnSticker("reason");
+      logActivity("reason_revealed", `Reason #${idx + 1} revealed: ${current.text.substring(0, 50)}...`);
       setTimeout(() => {
         toast.success("a new reason, kept safe. 🤍", {
           description: `${bearName} tucked it into the jar.`,

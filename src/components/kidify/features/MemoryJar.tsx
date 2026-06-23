@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PinkCard, PinkButton, Pill, SectionTitle } from "../ui/decor";
 import { Portal } from "../ui/portal";
 import { useKidify, type Memory } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { FlaskConical, Plus, X, Trash2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ export function MemoryJar() {
       return;
     }
     addMemory(text, emoji);
+    logActivity("memory_added", `Memory added: ${emoji} ${text.substring(0, 50)}`);
     toast.success("tucked into the jar. 🫙", {
       description: "it's safe there forever.",
     });
@@ -248,6 +250,7 @@ export function MemoryJar() {
                     onClick={() => {
                       removeMemory(viewing.id);
                       setViewing(null);
+                      logActivity("memory_removed", `Memory removed: ${viewing.emoji} ${viewing.text.substring(0, 40)}`);
                       toast("removed from the jar");
                     }}
                     className="flex h-11 w-11 items-center justify-center rounded-full bg-rose-100 text-rose-400 hover:bg-rose-200 hover:text-rose-600"

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
 import { PinkCard, Pill, SectionTitle } from "../ui/decor";
 import { useKidify, type SelfCareTask } from "@/lib/store";
+import { logActivity } from "@/lib/activity-logger";
 import { Check, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -41,6 +42,7 @@ export function SelfCareChecklist() {
   const handleToggle = (task: (typeof CARE_TASKS)[number]) => {
     const wasDone = careDoneToday.includes(task.id);
     toggleCareTask(task.id);
+    logActivity("care_task_done", `Care task ${wasDone ? "undone" : "done"}: ${task.emoji} ${task.label}`);
     if (!wasDone && doneCount + 1 === total) {
       toast.success("every single one. 🤍", {
         description: "you took care of you today. that's the whole point.",
