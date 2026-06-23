@@ -40,6 +40,7 @@ export function HugButton() {
     sendHug();
     earnSticker("hug");
     logActivity("hug_sent", `Hug sent (total: ${hugsSent + 1})`);
+    fetch("/api/notifications/hug", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "hug", count: hugsSent + 1 }) }).catch(() => {});
     setBurst(true);
     setTimeout(() => setBurst(false), 1200);
 

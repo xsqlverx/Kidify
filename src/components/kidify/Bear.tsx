@@ -47,9 +47,6 @@ export function Bear({ size = 120, className, interactive = true, mood: moodOver
   const patBear = useKidify((s) => s.patBear);
   const earnSticker = useKidify((s) => s.earnSticker);
   const setBearMood = useKidify((s) => s.setBearMood);
-  const registerAdminTap = useKidify((s) => s.registerAdminTap);
-  const unlockAdmin = useKidify((s) => s.unlockAdmin);
-  const adminUnlocked = useKidify((s) => s.adminUnlocked);
 
   const mood = moodOverride ?? bearMood;
   const [hearts, setHearts] = useState<{ id: number; x: number }[]>([]);
@@ -86,11 +83,7 @@ export function Bear({ size = 120, className, interactive = true, mood: moodOver
       earnSticker("pat");
       logActivity("bear_patted");
     }
-
-    if (registerAdminTap()) {
-      unlockAdmin();
-    }
-  }, [interactive, patBear, earnSticker, registerAdminTap, unlockAdmin]);
+  }, [interactive, patBear, earnSticker]);
 
   // eye state by mood
   const eyeShape =
@@ -354,16 +347,6 @@ export function Bear({ size = 120, className, interactive = true, mood: moodOver
           animate={{ opacity: 1, y: 0 }}
         >
           {bearName}
-        </motion.div>
-      )}
-      {adminUnlocked && (
-        <motion.div
-          className="absolute -right-2 top-0 text-xs"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          title="admin mode active"
-        >
-          🛠️
         </motion.div>
       )}
     </motion.div>

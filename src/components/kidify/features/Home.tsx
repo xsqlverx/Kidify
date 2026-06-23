@@ -29,6 +29,7 @@ import { useDailyMessage } from "@/lib/data-access";
 import type { DailyMessage } from "@/lib/mock-data";
 import { Droplets, ChevronLeft, ChevronRight, Check, CalendarDays, Shirt, Heart } from "lucide-react";
 import { toast } from "sonner";
+import { IncomingHug } from "./IncomingHug";
 
 export function HomeFeature() {
   const bearName = useKidify((s) => s.bearName);
@@ -47,7 +48,9 @@ export function HomeFeature() {
   const [reasonsOpen, setReasonsOpen] = useState(false);
   const [stickersOpen, setStickersOpen] = useState(false);
   const [confettiFire, setConfettiFire] = useState(0);
+  const [incomingHug, setIncomingHug] = useState<{ message: string; ts: number } | null>(null);
   const celebratedRef = useRef(false);
+  const lastHugTsRef = useRef(0);
   const today = useDailyMessage(0);
   const msg: DailyMessage = useDailyMessage(dayOffset);
 
@@ -55,6 +58,24 @@ export function HomeFeature() {
   useEffect(() => {
     resetStickersIfNewDay();
   }, [resetStickersIfNewDay]);
+
+  // poll for incoming hugs from Telegram
+  useEffect(() => {
+    const check = () => {
+      fetch(`/api/hugs/incoming?since=${lastHugTsRef.current}`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((data) => {
+          if (data && data.message) {
+            setIncomingHug({ message: data.message, ts: data.ts });
+            lastHugTsRef.current = data.ts;
+          }
+        })
+        .catch(() => {});
+    };
+    check();
+    const interval = setInterval(check, 8000);
+    return () => clearInterval(interval);
+  }, []);
 
   const greeting = useMemo(() => {
     const h = new Date().getHours();
@@ -483,6 +504,11 @@ export function HomeFeature() {
       >
         <span>🧸 you've given {bearName} {bearPats} {bearPats === 1 ? "pat" : "pats"}. it's keeping count.</span>
       </motion.div>
+
+      {/* incoming hug overlay */}
+      {incomingHug && (
+        <IncomingHug message={incomingHug.message} onDismiss={() => setIncomingHug(null)} />
+      )}
 
       {/* sheets & modals */}
       <Wardrobe open={wardrobeOpen} onClose={() => setWardrobeOpen(false)} />

@@ -123,7 +123,7 @@ export function AmbientSound() {
     const sound = SOUNDS.find((s) => s.id === type);
     logActivity("sound_toggled", `Sound on: ${sound?.label}`);
     if (sound) {
-      toast(`${sound.icon ? "🔊" : ""} ${sound.label} on`, {
+      toast(`🔊 ${sound.label} on`, {
         description: sound.desc,
       });
     }

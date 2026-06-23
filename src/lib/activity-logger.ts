@@ -23,6 +23,7 @@ type ActivityType =
   | "bear_patted"
   | "sound_toggled"
   | "accessory_equipped"
+  | "incoming_hug"
 
 export function logActivity(type: ActivityType, detail?: string) {
   fetch(API, {
