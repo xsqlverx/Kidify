@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart } from "lucide-react";
 
@@ -13,9 +13,12 @@ const HUG_MESSAGES = [
 ];
 
 export default function HugPage() {
+  const [mounted, setMounted] = useState(false);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const handleSend = async () => {
     if (!message.trim() || sending) return;
@@ -35,8 +38,8 @@ export default function HugPage() {
 
   return (
     <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-rose-50 via-pink-50 to-white px-6">
-      {/* floating hearts bg */}
-      {Array.from({ length: 8 }).map((_, i) => (
+      {/* floating hearts bg — only on client to avoid hydration mismatch */}
+      {mounted && Array.from({ length: 8 }).map((_, i) => (
         <motion.div
           key={i}
           className="absolute text-rose-300/30"

@@ -24,25 +24,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "not configured" }, { status: 500 });
     }
 
-    const origin = req.headers.get("origin") || "";
-    const hugUrl = `${origin}/hug`;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || req.headers.get("origin") || "";
+    const hugUrl = `${appUrl}/hug`;
+    const isLocal = appUrl.includes("localhost") || appUrl.includes("127.0.0.1");
 
     const msg = HUG_MESSAGES[Math.floor(Math.random() * HUG_MESSAGES.length)];
     const text = `${msg}\n\nthat's ${body.count} ${body.count === 1 ? "hug" : "hugs"} so far.`;
 
+    const payload: Record<string, unknown> = {
+      chat_id: Number(chatId),
+      text,
+      parse_mode: "Markdown",
+    };
+    if (!isLocal) {
+      payload.reply_markup = {
+        inline_keyboard: [[
+          { text: "💗 send a hug back", url: hugUrl },
+        ]],
+      };
+    }
+
     const res = await fetch(`${TELEGRAM_API}${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: Number(chatId),
-        text,
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [[
-            { text: "💗 send a hug back", url: hugUrl },
-          ]],
-        },
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {

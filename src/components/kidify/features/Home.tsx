@@ -62,6 +62,9 @@ export function HomeFeature() {
   // poll for incoming hugs from Telegram
   useEffect(() => {
     const check = () => {
+      const lastDismissed = parseInt(localStorage.getItem("lastIncomingHugDismissed") || "0");
+      if (Date.now() - lastDismissed < 300000) return; // 5 min cooldown
+
       fetch(`/api/hugs/incoming?since=${lastHugTsRef.current}`)
         .then((r) => r.ok ? r.json() : null)
         .then((data) => {
@@ -507,7 +510,13 @@ export function HomeFeature() {
 
       {/* incoming hug overlay */}
       {incomingHug && (
-        <IncomingHug message={incomingHug.message} onDismiss={() => setIncomingHug(null)} />
+        <IncomingHug
+          message={incomingHug.message}
+          onDismiss={() => {
+            localStorage.setItem("lastIncomingHugDismissed", String(Date.now()));
+            setIncomingHug(null);
+          }}
+        />
       )}
 
       {/* sheets & modals */}
