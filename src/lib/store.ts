@@ -687,7 +687,7 @@ export const useKidify = create<KidifyState>()(
     }),
     {
       name: "kidify-store",
-      version: 2,
+      version: 3,
       // admin access is session-only — never persisted, so a refresh always
       // re-locks the admin panel (more secure, avoids auto-opening)
       partialize: (s) => {
