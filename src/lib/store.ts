@@ -73,7 +73,7 @@ export type Gratitude = {
   ts: number;
 };
 
-export type BearMood = "happy" | "love" | "sleepy" | "excited" | "shy";
+export type BearMood = "happy" | "love" | "sleepy" | "excited" | "shy" | "angry";
 
 export type StickerTask =
   | "water" // drank a cup of water

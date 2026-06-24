@@ -80,8 +80,8 @@ export const DAILY_MESSAGES: Omit<DailyMessage, "date">[] = [
   },
   {
     title: "tiny love, big love",
-    body: "i love you the way you love the first sip of morning chai. immediately. completely. before the day has even properly started. that's the size of it.",
-    signature: "— your chai-person",
+    body: "i love you the way i love the first sip of morning chai. immediately. completely. before the day has even properly started. that's the size of it.",
+    signature: "— your chai-addicted bf, me",
     sticker: "☕",
   },
   {

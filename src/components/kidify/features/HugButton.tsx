@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useKidify } from "@/lib/store";
 import { logActivity } from "@/lib/activity-logger";
 import { Heart } from "lucide-react";
@@ -26,28 +26,30 @@ const HUG_MESSAGES = [
   "you just made his whole day. again.",
 ];
 
+const HUG_COOLDOWN_MS = 300000; // 5 minutes
+
 export function HugButton() {
   const sendHug = useKidify((s) => s.sendHug);
   const earnSticker = useKidify((s) => s.earnSticker);
   const hugsSent = useKidify((s) => s.hugsSent);
+  const lastHugAt = useKidify((s) => s.lastHugAt);
+  const [now, setNow] = useState(Date.now());
   const [particles, setParticles] = useState<HeartParticle[]>([]);
   const [burst, setBurst] = useState(false);
-  const [cooldown, setCooldown] = useState(false);
-  const cooldownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   const handleHug = useCallback(() => {
-    if (cooldown) return;
+    if (lastHugAt && Date.now() - lastHugAt < HUG_COOLDOWN_MS) return;
     sendHug();
     earnSticker("hug");
     logActivity("hug_sent", `Hug sent (total: ${hugsSent + 1})`);
     fetch("/api/notifications/hug", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "hug", count: hugsSent + 1 }) }).catch(() => {});
     setBurst(true);
     setTimeout(() => setBurst(false), 1200);
-
-    // enter cooldown for 3 seconds
-    setCooldown(true);
-    if (cooldownTimer.current) clearTimeout(cooldownTimer.current);
-    cooldownTimer.current = setTimeout(() => setCooldown(false), 3000);
 
     // spawn a burst of heart particles
     const colors = ["#F472B6", "#EC4899", "#F9A8D4", "#FB7185", "#FDA4AF"];
@@ -67,7 +69,7 @@ export function HugButton() {
     toast.success(HUG_MESSAGES[Math.floor(Math.random() * HUG_MESSAGES.length)], {
       description: hugsSent + 1 === 1 ? "your first hug. 🤍" : `that's ${hugsSent + 1} hugs sent.`,
     });
-  }, [cooldown, sendHug, earnSticker, hugsSent]);
+  }, [lastHugAt, sendHug, earnSticker, hugsSent]);
 
   return (
     <div className="relative flex flex-col items-center">
@@ -98,7 +100,7 @@ export function HugButton() {
       {/* the big hug button */}
       <motion.button
         onClick={handleHug}
-        disabled={cooldown}
+        disabled={!!(lastHugAt && Date.now() - lastHugAt < HUG_COOLDOWN_MS)}
         whileTap={{ scale: 0.92 }}
         whileHover={{ scale: 1.04 }}
         className="relative flex h-28 w-28 items-center justify-center rounded-full"
@@ -138,13 +140,14 @@ export function HugButton() {
           ? "tap to send your first one"
           : `${hugsSent} ${hugsSent === 1 ? "hug" : "hugs"} sent so far 🤍`}
       </p>
-      {cooldown && (
+      {lastHugAt && now - lastHugAt < HUG_COOLDOWN_MS && (
         <motion.p
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           className="mt-1 text-[10px] italic text-rose-400/60"
         >
-          one at a time, love. let it land.
+          one hug every 5 minutes, love. &nbsp;
+          {Math.ceil((HUG_COOLDOWN_MS - (now - lastHugAt)) / 60000)}m left
         </motion.p>
       )}
     </div>

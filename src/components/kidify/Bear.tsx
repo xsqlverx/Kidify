@@ -1,9 +1,10 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useKidify, type BearMood } from "@/lib/store";
 import { logActivity } from "@/lib/activity-logger";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 type BearProps = {
@@ -21,7 +22,16 @@ const MOOD_EMOJI: Record<BearMood, string> = {
   sleepy: "💤",
   excited: "✨",
   shy: "🌸",
+  angry: "💢",
 };
+
+const SCOLD_MESSAGES = [
+  "hey. that's a little too much. 🧸",
+  "be gentle with him, love. he's fragile.",
+  "he's not a drum, sweetheart. tap softly.",
+  "slow down. he needs a breather.",
+  "too fast. give him a moment.",
+];
 
 /** A single floating heart particle */
 function Heart({ delay, x }: { delay: number; x: number }) {
@@ -51,6 +61,8 @@ export function Bear({ size = 120, className, interactive = true, mood: moodOver
   const mood = moodOverride ?? bearMood;
   const [hearts, setHearts] = useState<{ id: number; x: number }[]>([]);
   const [squish, setSquish] = useState(false);
+  const tapTimes = useRef<number[]>([]);
+  const angryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // occasional idle mood drift for the big interactive bear
   useEffect(() => {
@@ -65,9 +77,22 @@ export function Bear({ size = 120, className, interactive = true, mood: moodOver
   }, [interactive, setBearMood]);
 
   const handleTap = useCallback(() => {
+    // spam detection
+    const now = Date.now();
+    tapTimes.current = tapTimes.current.filter((t) => now - t < 3000);
+    tapTimes.current.push(now);
+    if (tapTimes.current.length >= 6) {
+      if (angryTimer.current) clearTimeout(angryTimer.current);
+      setBearMood("angry");
+      toast.error(SCOLD_MESSAGES[Math.floor(Math.random() * SCOLD_MESSAGES.length)]);
+      angryTimer.current = setTimeout(() => setBearMood("happy"), 4000);
+      tapTimes.current = [];
+      return;
+    }
+
     setSquish(true);
     setTimeout(() => setSquish(false), 320);
-    const id = Date.now();
+    const id = now;
     setHearts((h) => [
       ...h.slice(-4),
       { id, x: 20 + Math.random() * 40 },
@@ -83,7 +108,7 @@ export function Bear({ size = 120, className, interactive = true, mood: moodOver
       earnSticker("pat");
       logActivity("bear_patted");
     }
-  }, [interactive, patBear, earnSticker]);
+  }, [interactive, patBear, earnSticker, setBearMood]);
 
   // eye state by mood
   const eyeShape =
@@ -95,7 +120,9 @@ export function Bear({ size = 120, className, interactive = true, mood: moodOver
           ? "shy"
           : mood === "excited"
             ? "wide"
-            : "open";
+            : mood === "angry"
+              ? "angry"
+              : "open";
 
   return (
     <motion.div
@@ -221,17 +248,39 @@ export function Bear({ size = 120, className, interactive = true, mood: moodOver
               <path d="M104 96 Q112 100 120 96" stroke="#3B2A22" strokeWidth="3" fill="none" strokeLinecap="round" />
             </>
           )}
+          {eyeShape === "angry" && (
+            <>
+              {/* angry brows */}
+              <path d="M76 84 L94 90" stroke="#3B2A22" strokeWidth="3" strokeLinecap="round" />
+              <path d="M124 84 L106 90" stroke="#3B2A22" strokeWidth="3" strokeLinecap="round" />
+              {/* narrowed eyes */}
+              <ellipse cx="88" cy="96" rx="5" ry="4" fill="#3B2A22" />
+              <ellipse cx="112" cy="96" rx="5" ry="4" fill="#3B2A22" />
+              <circle cx="89" cy="95" r="1.5" fill="#fff" />
+              <circle cx="113" cy="95" r="1.5" fill="#fff" />
+            </>
+          )}
 
           {/* nose */}
           <ellipse cx="100" cy="116" rx="7" ry="5" fill="#3B2A22" />
           {/* mouth */}
-          <path
-            d="M100 121 L100 128 M100 128 Q92 134 86 130 M100 128 Q108 134 114 130"
-            stroke="#3B2A22"
-            strokeWidth="2.5"
-            fill="none"
-            strokeLinecap="round"
-          />
+          {mood === "angry" ? (
+            <path
+              d="M100 128 Q92 122 86 126 M100 128 Q108 122 114 126"
+              stroke="#3B2A22"
+              strokeWidth="2.5"
+              fill="none"
+              strokeLinecap="round"
+            />
+          ) : (
+            <path
+              d="M100 121 L100 128 M100 128 Q92 134 86 130 M100 128 Q108 134 114 130"
+              stroke="#3B2A22"
+              strokeWidth="2.5"
+              fill="none"
+              strokeLinecap="round"
+            />
+          )}
 
           {/* accessories */}
           {accessory === "bow" && (
